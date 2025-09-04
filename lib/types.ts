@@ -34,25 +34,6 @@ export interface ProductRequest {
   created_at: string
 }
 
-export interface OrderFormData {
-  name: string
-  lastname: string
-  email: string
-  phone?: string
-  products: ProductFormData[]
-}
-
-export interface ProductFormData {
-  product_type: string
-  zone_option_1: string
-  zone_option_2: string
-  zone_option_3: string
-  zone_option_4: string
-  zone_option_5: string
-  heel_height: string
-  posterior_wedge: string
-}
-
 export interface AppSetting {
   id: string
   key: string

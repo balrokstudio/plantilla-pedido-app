@@ -6,8 +6,10 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { ExternalLink, HelpCircle } from "lucide-react"
-import type { OrderFormData, ProductOption } from "@/lib/types"
+import type { ProductOption } from "@/lib/types"
+import type { OrderFormData } from "@/lib/validations"
 import { createClient } from "@/lib/supabase/client"
+import { Input } from "@/components/ui/input"
 
 interface ProductFormProps {
   form: UseFormReturn<OrderFormData>
@@ -72,6 +74,20 @@ export function ProductForm({ form, index }: ProductFormProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <FormField
+        control={form.control}
+        name={`products.${index}.patient_name` as any}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Nombre del Paciente *</FormLabel>
+            <FormControl>
+              <Input placeholder="Ingrese el nombre del paciente" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
       <FormField
         control={form.control}
         name={`products.${index}.product_type`}

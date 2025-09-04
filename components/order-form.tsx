@@ -29,6 +29,7 @@ export function OrderForm() {
       products: [
         {
           product_type: "",
+          patient_name: "",
           zone_option_1: "ninguna",
           zone_option_2: "ninguna",
           zone_option_3: "ninguna",
@@ -49,6 +50,7 @@ export function OrderForm() {
   const addProduct = () => {
     append({
       product_type: "",
+      patient_name: "",
       zone_option_1: "ninguna",
       zone_option_2: "ninguna",
       zone_option_3: "ninguna",

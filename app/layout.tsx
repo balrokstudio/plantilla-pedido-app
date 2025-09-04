@@ -20,11 +20,26 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es">
-      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="es" suppressHydrationWarning>
+      <body className={`min-h-screen flex flex-col font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
         <Suspense fallback={null}>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-            {children}
+            <main className="flex-1">
+              {children}
+            </main>
+            <footer className="w-full py-1">
+              <div className="container mx-auto  py-3 px-4 text-center text-xs text-muted-foreground leading-none">
+                Desarrollado por{" "}
+                <a
+                  href="https://balrok.studio"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-foreground"
+                >
+                  Balrok.Studio
+                </a>
+              </div>
+            </footer>
             <Toaster />
           </ThemeProvider>
         </Suspense>

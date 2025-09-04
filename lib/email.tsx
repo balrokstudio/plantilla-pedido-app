@@ -1,6 +1,10 @@
-import { Resend } from "resend"
+// Email sending via Brevo (Sendinblue) HTTP API
+// Docs: https://developers.brevo.com/reference/sendtransacemail
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email"
+const BREVO_API_KEY = process.env.BREVO_API_KEY
+const EMAIL_FROM = process.env.EMAIL_FROM || "noreply@example.com"
+const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || "Sistema"
 
 export interface OrderEmailData {
   customerName: string
@@ -17,18 +21,30 @@ export interface OrderEmailData {
 
 export async function sendCustomerConfirmationEmail(data: OrderEmailData) {
   try {
-    const { data: emailData, error } = await resend.emails.send({
-      from: "Plantillas Ortopédicas <noreply@plantillas-ortopedicas.com>",
-      to: [data.customerEmail],
-      subject: `Confirmación de pedido #${data.orderNumber}`,
-      html: generateCustomerEmailTemplate(data),
+    if (!BREVO_API_KEY) throw new Error("BREVO_API_KEY no configurado")
+
+    const response = await fetch(BREVO_API_URL, {
+      method: "POST",
+      headers: {
+        "api-key": BREVO_API_KEY,
+        "content-type": "application/json",
+        accept: "application/json",
+      },
+      body: JSON.stringify({
+        sender: { email: EMAIL_FROM, name: EMAIL_FROM_NAME },
+        to: [{ email: data.customerEmail }],
+        subject: `Confirmación de pedido #${data.orderNumber}`,
+        htmlContent: generateCustomerEmailTemplate(data),
+      }),
     })
 
-    if (error) {
-      console.error("Error sending customer email:", error)
-      return { success: false, error }
+    if (!response.ok) {
+      const err = await safeJson(response)
+      console.error("Error sending customer email:", err)
+      return { success: false, error: err }
     }
 
+    const emailData = await response.json()
     return { success: true, data: emailData }
   } catch (error) {
     console.error("Error sending customer email:", error)
@@ -38,23 +54,69 @@ export async function sendCustomerConfirmationEmail(data: OrderEmailData) {
 
 export async function sendAdminNotificationEmail(data: OrderEmailData) {
   try {
-    const adminEmail = process.env.ADMIN_EMAIL || "admin@plantillas-ortopedicas.com"
+    if (!BREVO_API_KEY) throw new Error("BREVO_API_KEY no configurado")
+    const adminEmail = process.env.ADMIN_EMAIL || "admin@example.com"
 
-    const { data: emailData, error } = await resend.emails.send({
-      from: "Sistema Plantillas <sistema@plantillas-ortopedicas.com>",
-      to: [adminEmail],
-      subject: `Nuevo pedido recibido #${data.orderNumber}`,
-      html: generateAdminEmailTemplate(data),
+    const response = await fetch(BREVO_API_URL, {
+      method: "POST",
+      headers: {
+        "api-key": BREVO_API_KEY,
+        "content-type": "application/json",
+        accept: "application/json",
+      },
+      body: JSON.stringify({
+        sender: { email: EMAIL_FROM, name: EMAIL_FROM_NAME },
+        to: [{ email: adminEmail }],
+        subject: `Nuevo pedido recibido #${data.orderNumber}`,
+        htmlContent: generateAdminEmailTemplate(data),
+      }),
     })
 
-    if (error) {
-      console.error("Error sending admin email:", error)
-      return { success: false, error }
+    if (!response.ok) {
+      const err = await safeJson(response)
+      console.error("Error sending admin email:", err)
+      return { success: false, error: err }
     }
 
+    const emailData = await response.json()
     return { success: true, data: emailData }
   } catch (error) {
     console.error("Error sending admin email:", error)
+    return { success: false, error }
+  }
+}
+
+export async function sendTestEmail(toEmail?: string) {
+  try {
+    if (!BREVO_API_KEY) throw new Error("BREVO_API_KEY no configurado")
+    const recipient = toEmail || process.env.ADMIN_EMAIL || EMAIL_FROM
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+
+    const response = await fetch(BREVO_API_URL, {
+      method: "POST",
+      headers: {
+        "api-key": BREVO_API_KEY,
+        "content-type": "application/json",
+        accept: "application/json",
+      },
+      body: JSON.stringify({
+        sender: { email: EMAIL_FROM, name: EMAIL_FROM_NAME },
+        to: [{ email: recipient }],
+        subject: "Prueba de integraciones - Sistema de Pedidos",
+        htmlContent: `<p>Este es un email de prueba enviado desde el entorno de desarrollo.</p><p>Fecha: ${new Date().toISOString()}</p><p>App: ${appUrl}</p>`,
+      }),
+    })
+
+    if (!response.ok) {
+      const err = await safeJson(response)
+      console.error("Error sending test email:", err)
+      return { success: false, error: err }
+    }
+
+    const emailData = await response.json()
+    return { success: true, data: emailData }
+  } catch (error) {
+    console.error("Error sending test email:", error)
     return { success: false, error }
   }
 }
@@ -146,6 +208,15 @@ function generateCustomerEmailTemplate(data: OrderEmailData): string {
     </body>
     </html>
   `
+}
+
+// Helper to safely parse JSON error payloads from Brevo
+async function safeJson(res: Response) {
+  try {
+    return await res.json()
+  } catch {
+    return { status: res.status, statusText: res.statusText }
+  }
 }
 
 function generateAdminEmailTemplate(data: OrderEmailData): string {
