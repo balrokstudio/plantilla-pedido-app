@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { orderFormSchema } from "@/lib/validations"
 import { sendCustomerConfirmationEmail, sendAdminNotificationEmail, type OrderEmailData } from "@/lib/email"
 import { addOrderToGoogleSheets } from "@/lib/google-sheets"
+import { ZodError } from "zod"
 
 export async function POST(request: NextRequest) {
   try {
@@ -76,8 +77,30 @@ export async function POST(request: NextRequest) {
       rearfoot_calcaneus: product.rearfoot_calcaneus || null,
       heel_raise_mm: product.heel_raise_mm || null,
     }))
+    // Try inserting with new columns first; if it fails (e.g., columns not present yet), retry with legacy fields only
+    let productsError: any | null = null
+    {
+      const insertProducts = await supabase.from("product_requests").insert(productRequests)
+      productsError = insertProducts.error
+    }
 
-    const { error: productsError } = await supabase.from("product_requests").insert(productRequests)
+    if (productsError) {
+      console.warn("Insert with new product columns failed, retrying with legacy fields only:", productsError?.message || productsError)
+      const legacyProductRequests = validatedData.products.map((product) => ({
+        customer_request_id: customerRequest.id,
+        product_type: product.product_type,
+        zone_option_1: product.zone_option_1,
+        zone_option_2: product.zone_option_2,
+        zone_option_3: product.zone_option_3,
+        zone_option_4: product.zone_option_4,
+        zone_option_5: product.zone_option_5,
+        heel_height: product.heel_height,
+        posterior_wedge: product.posterior_wedge,
+      }))
+
+      const retry = await supabase.from("product_requests").insert(legacyProductRequests)
+      productsError = retry.error
+    }
 
     if (productsError) {
       console.error("Error creating product requests:", productsError)
@@ -167,10 +190,21 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error in submit-order API:", error)
 
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        { success: false, message: "Datos inválidos. Revise el formulario.", issues: error.issues },
+        { status: 400 },
+      )
+    }
+
     if (error instanceof Error) {
-      return NextResponse.json({ success: false, message: error.message }, { status: 400 })
+      return NextResponse.json(
+        { success: false, message: error.message || "Error interno del servidor" },
+        { status: 500 },
+      )
     }
 
     return NextResponse.json({ success: false, message: "Error interno del servidor" }, { status: 500 })
   }
 }
+

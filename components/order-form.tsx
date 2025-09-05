@@ -98,7 +98,23 @@ export function OrderForm() {
       })
 
       if (!response.ok) {
-        throw new Error("Error al enviar el pedido")
+        let message = "Error al enviar el pedido"
+        try {
+          const data = await response.json()
+          if (data?.message) message = data.message
+          // If validation issues are present, append a compact description
+          if (Array.isArray(data?.issues) && data.issues.length > 0) {
+            const fields = data.issues
+              .map((i: any) => (i?.path ? String(i.path.join?.(".")) : i?.code || "campo"))
+              .filter(Boolean)
+              .slice(0, 5)
+              .join(", ")
+            if (fields) message += ` (campos: ${fields} ...)`
+          }
+        } catch (e) {
+          // ignore JSON parse errors and keep default message
+        }
+        throw new Error(message)
       }
 
       setSubmitSuccess(true)
@@ -108,9 +124,10 @@ export function OrderForm() {
         description: "Recibirá un email de confirmación en breve.",
       })
     } catch (error) {
+      const description = error instanceof Error && error.message ? error.message : "Por favor, inténtelo nuevamente."
       toast({
         title: "Error al enviar el pedido",
-        description: "Por favor, inténtelo nuevamente.",
+        description,
         variant: "destructive",
       })
     } finally {
