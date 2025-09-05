@@ -10,6 +10,7 @@ import type { ProductOption } from "@/lib/types"
 import type { OrderFormData } from "@/lib/validations"
 import { createClient } from "@/lib/supabase/client"
 import { Input } from "@/components/ui/input"
+import { useFormConfig } from "@/hooks/use-form-config"
 
 interface ProductFormProps {
   form: UseFormReturn<OrderFormData>
@@ -19,6 +20,7 @@ interface ProductFormProps {
 export function ProductForm({ form, index }: ProductFormProps) {
   const [productOptions, setProductOptions] = useState<Record<string, ProductOption[]>>({})
   const [loading, setLoading] = useState(true)
+  const { config } = useFormConfig()
 
   // Listas fijas solicitadas por el cliente
   const PLANTILLA_TYPES = [
@@ -179,98 +181,106 @@ export function ProductForm({ form, index }: ProductFormProps) {
       />
 
       {/* Color */}
-      <FormField
-        control={form.control}
-        name={`products.${index}.template_color` as any}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Color</FormLabel>
-            <FormControl>
-              <Input placeholder="Ingrese el color" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      {config.productFields.template_color !== false && (
+        <FormField
+          control={form.control}
+          name={`products.${index}.template_color` as any}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Color</FormLabel>
+              <FormControl>
+                <Input placeholder="Ingrese el color" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
 
       {/* Talle */}
-      <FormField
-        control={form.control}
-        name={`products.${index}.template_size` as any}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Selección de talle</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione el talle" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {SIZE_OPTIONS.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {value}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-gray-500 mt-1">Los cm son el largo total de la plantilla a fabricar</p>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      {config.productFields.template_size !== false && (
+        <FormField
+          control={form.control}
+          name={`products.${index}.template_size` as any}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Selección de talle</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccione el talle" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {SIZE_OPTIONS.map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500 mt-1">Los cm son el largo total de la plantilla a fabricar</p>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
 
       {/* Antepié - Zona metatarsal */}
-      <FormField
-        control={form.control}
-        name={`products.${index}.forefoot_metatarsal` as any}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Antepié - Zona metatarsal</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {FOREFOOT_OPTIONS.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {value}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      {config.productFields.forefoot_metatarsal !== false && (
+        <FormField
+          control={form.control}
+          name={`products.${index}.forefoot_metatarsal` as any}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Antepié - Zona metatarsal</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {FOREFOOT_OPTIONS.map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
 
       {/* Cuña Anterior */}
-      <FormField
-        control={form.control}
-        name={`products.${index}.anterior_wedge` as any}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Cuña Anterior</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {ANTERIOR_WEDGE_OPTIONS.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {value}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      {config.productFields.anterior_wedge !== false && (
+        <FormField
+          control={form.control}
+          name={`products.${index}.anterior_wedge` as any}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Cuña Anterior</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {ANTERIOR_WEDGE_OPTIONS.map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
 
       {/* Mediopié - Zona arco con botón de ayuda */}
       <div className="md:col-span-2">
@@ -289,85 +299,91 @@ export function ProductForm({ form, index }: ProductFormProps) {
           </Button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <FormField
-            control={form.control}
-            name={`products.${index}.midfoot_arch` as any}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Zona arco</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {MIDFOOT_ARCH_OPTIONS.map((value) => (
-                      <SelectItem key={value} value={value}>
-                        {value}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name={`products.${index}.midfoot_external_wedge` as any}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Cuña Mediopié Externa</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {MIDFOOT_EXTERNAL_WEDGE_OPTIONS.map((value) => (
-                      <SelectItem key={value} value={value}>
-                        {value}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {config.productFields.midfoot_arch !== false && (
+            <FormField
+              control={form.control}
+              name={`products.${index}.midfoot_arch` as any}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Zona arco</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {MIDFOOT_ARCH_OPTIONS.map((value) => (
+                        <SelectItem key={value} value={value}>
+                          {value}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+          {config.productFields.midfoot_external_wedge !== false && (
+            <FormField
+              control={form.control}
+              name={`products.${index}.midfoot_external_wedge` as any}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cuña Mediopié Externa</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {MIDFOOT_EXTERNAL_WEDGE_OPTIONS.map((value) => (
+                        <SelectItem key={value} value={value}>
+                          {value}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         </div>
       </div>
 
       {/* Retropié - Zona calcáneo */}
-      <FormField
-        control={form.control}
-        name={`products.${index}.rearfoot_calcaneus` as any}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Retropié - Zona calcáneo</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {REARFOOT_OPTIONS.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {value}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      {config.productFields.rearfoot_calcaneus !== false && (
+        <FormField
+          control={form.control}
+          name={`products.${index}.rearfoot_calcaneus` as any}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Retropié - Zona calcáneo</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {REARFOOT_OPTIONS.map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
 
       {/* Detalle de milímetros para Realce en talón */}
-      {rearfootValue === "Realce en talón" && (
+      {config.productFields.heel_raise_mm !== false && rearfootValue === "Realce en talón" && (
         <FormField
           control={form.control}
           name={`products.${index}.heel_raise_mm` as any}
@@ -395,27 +411,29 @@ export function ProductForm({ form, index }: ProductFormProps) {
       )}
 
       {/* Cuña Posterior */}
-      <FormField
-        control={form.control}
-        name={`products.${index}.posterior_wedge`}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Cuña Posterior</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="Cuña Posterior Externa">Cuña Posterior Externa</SelectItem>
-                <SelectItem value="Cuña Posterior Interna">Cuña Posterior Interna</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      {config.productFields.posterior_wedge !== false && (
+        <FormField
+          control={form.control}
+          name={`products.${index}.posterior_wedge`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Cuña Posterior</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="Cuña Posterior Externa">Cuña Posterior Externa</SelectItem>
+                  <SelectItem value="Cuña Posterior Interna">Cuña Posterior Interna</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
     </div>
   )
 }

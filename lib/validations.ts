@@ -11,8 +11,8 @@ export const productFormSchema = z.object({
   heel_height: z.string().default("ninguna"),
   posterior_wedge: z.string().default("no"),
   // Nuevos campos solicitados
-  template_color: z.string().min(1, "Debe ingresar el color"),
-  template_size: z.string().min(1, "Debe seleccionar un talle"),
+  template_color: z.string().optional().default(""),
+  template_size: z.string().optional().default(""),
   forefoot_metatarsal: z.string().optional().default(""),
   anterior_wedge: z.string().optional().default(""),
   midfoot_arch: z.string().optional().default(""),
