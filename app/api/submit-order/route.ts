@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       throw new Error("Error al crear el pedido")
     }
 
-    // Insert product requests
+    // Insert product requests (with new physical columns)
     const productRequests = validatedData.products.map((product) => ({
       customer_request_id: customerRequest.id,
       product_type: product.product_type,
@@ -66,6 +66,15 @@ export async function POST(request: NextRequest) {
       zone_option_5: product.zone_option_5,
       heel_height: product.heel_height,
       posterior_wedge: product.posterior_wedge,
+      // New physical columns (Option B)
+      template_color: product.template_color || null,
+      template_size: product.template_size || null,
+      forefoot_metatarsal: product.forefoot_metatarsal || null,
+      anterior_wedge: product.anterior_wedge || null,
+      midfoot_arch: product.midfoot_arch || null,
+      midfoot_external_wedge: product.midfoot_external_wedge || null,
+      rearfoot_calcaneus: product.rearfoot_calcaneus || null,
+      heel_raise_mm: product.heel_raise_mm || null,
     }))
 
     const { error: productsError } = await supabase.from("product_requests").insert(productRequests)

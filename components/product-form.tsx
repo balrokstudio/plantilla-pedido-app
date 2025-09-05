@@ -187,7 +187,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
           name={`products.${index}.template_color` as any}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Color</FormLabel>
+              <FormLabel>{config.productLabels?.template_color || "Color"}</FormLabel>
               <FormControl>
                 <Input placeholder="Ingrese el color" {...field} />
               </FormControl>
@@ -204,7 +204,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
           name={`products.${index}.template_size` as any}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Selección de talle</FormLabel>
+              <FormLabel>{config.productLabels?.template_size || "Selección de talle"}</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -233,7 +233,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
           name={`products.${index}.forefoot_metatarsal` as any}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Antepié - Zona metatarsal</FormLabel>
+              <FormLabel>{config.productLabels?.forefoot_metatarsal || "Antepié - Zona metatarsal"}</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -261,7 +261,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
           name={`products.${index}.anterior_wedge` as any}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Cuña Anterior</FormLabel>
+              <FormLabel>{config.productLabels?.anterior_wedge || "Cuña Anterior"}</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -305,7 +305,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
               name={`products.${index}.midfoot_arch` as any}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Zona arco</FormLabel>
+                  <FormLabel>{config.productLabels?.midfoot_arch || "Zona arco"}</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -331,7 +331,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
               name={`products.${index}.midfoot_external_wedge` as any}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Cuña Mediopié Externa</FormLabel>
+                  <FormLabel>{config.productLabels?.midfoot_external_wedge || "Cuña Mediopié Externa"}</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -361,7 +361,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
           name={`products.${index}.rearfoot_calcaneus` as any}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Retropié - Zona calcáneo</FormLabel>
+              <FormLabel>{config.productLabels?.rearfoot_calcaneus || "Retropié - Zona calcáneo"}</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -389,7 +389,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
           name={`products.${index}.heel_raise_mm` as any}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Detalle de milímetros para Realce en talón</FormLabel>
+              <FormLabel>{config.productLabels?.heel_raise_mm || "Detalle de milímetros para Realce en talón"}</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -417,7 +417,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
           name={`products.${index}.posterior_wedge`}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Cuña Posterior</FormLabel>
+              <FormLabel>{config.productLabels?.posterior_wedge || "Cuña Posterior"}</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>

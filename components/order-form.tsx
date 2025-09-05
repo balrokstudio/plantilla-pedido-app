@@ -190,7 +190,7 @@ export function OrderForm() {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Teléfono</FormLabel>
+                    <FormLabel>{config.orderLabels?.phone || "Teléfono"}</FormLabel>
                     <FormControl>
                       <Input placeholder="Ingrese su teléfono" {...field} />
                     </FormControl>
@@ -263,7 +263,7 @@ export function OrderForm() {
                 name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Observaciones</FormLabel>
+                    <FormLabel>{config.orderLabels?.notes || "Observaciones"}</FormLabel>
                     <FormControl>
                       <textarea
                         className="w-full min-h-24 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

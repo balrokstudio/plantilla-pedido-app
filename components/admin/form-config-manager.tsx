@@ -97,6 +97,20 @@ export function FormConfigManager() {
     })
   }
 
+  const setLabel = (path: string[], value: string) => {
+    setConfig((prev) => {
+      const copy: any = JSON.parse(JSON.stringify(prev))
+      let ref: any = copy
+      for (let i = 0; i < path.length - 1; i++) {
+        if (!ref[path[i]]) ref[path[i]] = {}
+        ref = ref[path[i]]
+      }
+      const last = path[path.length - 1]
+      ref[last] = value
+      return copy
+    })
+  }
+
   if (loading) {
     return (
       <Card>
@@ -117,7 +131,7 @@ export function FormConfigManager() {
         <CardHeader>
           <CardTitle>Campos del Pedido</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <Label>Teléfono</Label>
             <input
@@ -125,6 +139,16 @@ export function FormConfigManager() {
               checked={config.orderFields.phone}
               onChange={() => toggle(["orderFields", "phone"])}
             />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <Label>Etiqueta Teléfono</Label>
+              <input
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={(config as any).orderLabels?.phone || "Teléfono"}
+                onChange={(e) => setLabel(["orderLabels", "phone"], e.target.value)}
+              />
+            </div>
           </div>
           <div className="flex items-center justify-between">
             <Label>Observaciones</Label>
@@ -134,6 +158,16 @@ export function FormConfigManager() {
               onChange={() => toggle(["orderFields", "notes"])}
             />
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <Label>Etiqueta Observaciones</Label>
+              <input
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={(config as any).orderLabels?.notes || "Observaciones"}
+                onChange={(e) => setLabel(["orderLabels", "notes"], e.target.value)}
+              />
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -141,7 +175,7 @@ export function FormConfigManager() {
         <CardHeader>
           <CardTitle>Campos de Producto</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           {(
             [
               ["Color", "template_color"],
@@ -155,13 +189,25 @@ export function FormConfigManager() {
               ["Cuña Posterior", "posterior_wedge"],
             ] as const
           ).map(([label, key]) => (
-            <div key={key} className="flex items-center justify-between">
-              <Label>{label}</Label>
-              <input
-                type="checkbox"
-                checked={(config.productFields as any)[key] ?? true}
-                onChange={() => toggle(["productFields", key])}
-              />
+            <div key={key} className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>{label}</Label>
+                <input
+                  type="checkbox"
+                  checked={(config.productFields as any)[key] ?? true}
+                  onChange={() => toggle(["productFields", key])}
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <Label>Etiqueta</Label>
+                  <input
+                    className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={(config as any).productLabels?.[key] || label}
+                    onChange={(e) => setLabel(["productLabels", key], e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
           ))}
         </CardContent>

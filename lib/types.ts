@@ -31,6 +31,15 @@ export interface ProductRequest {
   zone_option_5: string
   heel_height: string
   posterior_wedge: string
+  // New physical columns (Option B)
+  template_color?: string | null
+  template_size?: string | null
+  forefoot_metatarsal?: string | null
+  anterior_wedge?: string | null
+  midfoot_arch?: string | null
+  midfoot_external_wedge?: string | null
+  rearfoot_calcaneus?: string | null
+  heel_raise_mm?: string | null
   created_at: string
 }
 

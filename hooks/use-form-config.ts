@@ -5,6 +5,7 @@ export interface FormConfig {
     phone: boolean
     notes: boolean
   }
+  orderLabels?: Partial<Record<"phone" | "notes", string>>
   productFields: {
     forefoot_metatarsal: boolean
     anterior_wedge: boolean
@@ -16,10 +17,25 @@ export interface FormConfig {
     template_color?: boolean
     template_size?: boolean
   }
+  productLabels?: Partial<
+    Record<
+      | "template_color"
+      | "template_size"
+      | "forefoot_metatarsal"
+      | "anterior_wedge"
+      | "midfoot_arch"
+      | "midfoot_external_wedge"
+      | "rearfoot_calcaneus"
+      | "heel_raise_mm"
+      | "posterior_wedge",
+      string
+    >
+  >
 }
 
 const defaultConfig: FormConfig = {
   orderFields: { phone: true, notes: true },
+  orderLabels: { phone: "Teléfono", notes: "Observaciones" },
   productFields: {
     forefoot_metatarsal: true,
     anterior_wedge: true,
@@ -30,6 +46,17 @@ const defaultConfig: FormConfig = {
     posterior_wedge: true,
     template_color: true,
     template_size: true,
+  },
+  productLabels: {
+    template_color: "Color",
+    template_size: "Selección de talle",
+    forefoot_metatarsal: "Antepié - Zona metatarsal",
+    anterior_wedge: "Cuña Anterior",
+    midfoot_arch: "Zona arco",
+    midfoot_external_wedge: "Cuña Mediopié Externa",
+    rearfoot_calcaneus: "Retropié - Zona calcáneo",
+    heel_raise_mm: "Detalle de milímetros para Realce en talón",
+    posterior_wedge: "Cuña Posterior",
   },
 }
 
@@ -47,7 +74,9 @@ export function useFormConfig() {
         if (!active) return
         setConfig({
           orderFields: { ...defaultConfig.orderFields, ...(data.orderFields || {}) },
+          orderLabels: { ...defaultConfig.orderLabels, ...(data.orderLabels || {}) },
           productFields: { ...defaultConfig.productFields, ...(data.productFields || {}) },
+          productLabels: { ...defaultConfig.productLabels, ...(data.productLabels || {}) },
         })
       } finally {
         if (active) setLoading(false)
