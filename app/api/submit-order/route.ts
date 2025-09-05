@@ -172,19 +172,28 @@ export async function POST(request: NextRequest) {
       notes: validatedData.notes || "",
     }
 
-    // Send emails and sync to Google Sheets (don't block the response if they fail)
-    // Important: if Google Sheets returns false (no exception), convert to an error so we can log it.
-    Promise.all([
-      sendCustomerConfirmationEmail(emailData),
-      sendAdminNotificationEmail(emailData),
-      addOrderToGoogleSheets(sheetsData).then((ok) => {
-        if (!ok) {
-          throw new Error("Google Sheets sync returned false (check credentials, spreadsheet ID, and permissions)")
-        }
-      }),
-    ]).catch((error) => {
-      console.error("Error with post-order processing:", error)
-      // Log but don't fail the request
+    // Send emails and sync to Google Sheets. Await to ensure serverless does not drop the tasks.
+    // We don't fail the request if side effects fail; we just log results.
+    const results = await Promise.allSettled([
+      (async () => {
+        const r = await sendCustomerConfirmationEmail(emailData)
+        if (!r?.success) throw new Error(`Customer email failed: ${JSON.stringify(r?.error || r)}`)
+      })(),
+      (async () => {
+        const r = await sendAdminNotificationEmail(emailData)
+        if (!r?.success) throw new Error(`Admin email failed: ${JSON.stringify(r?.error || r)}`)
+      })(),
+      (async () => {
+        const ok = await addOrderToGoogleSheets(sheetsData)
+        if (!ok) throw new Error("Google Sheets sync returned false (check credentials, spreadsheet ID, and permissions)")
+      })(),
+    ])
+
+    results.forEach((res, idx) => {
+      if (res.status === "rejected") {
+        const task = idx === 0 ? "customer_email" : idx === 1 ? "admin_email" : "google_sheets"
+        console.error(`Post-order task '${task}' failed:`, res.reason)
+      }
     })
 
     return NextResponse.json({
