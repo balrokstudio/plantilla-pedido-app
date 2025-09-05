@@ -141,36 +141,49 @@ class GoogleSheetsService {
         values: [headers],
       },
     })
-
-    // Format headers
-    await this.sheets.spreadsheets.batchUpdate({
-      spreadsheetId,
-      requestBody: {
-        requests: [
-          {
-            repeatCell: {
-              range: {
-                sheetId: 0,
-                startRowIndex: 0,
-                endRowIndex: 1,
-                startColumnIndex: 0,
-                endColumnIndex: headers.length,
-              },
-              cell: {
-                userEnteredFormat: {
-                  backgroundColor: { red: 0.2, green: 0.6, blue: 0.9 },
-                  textFormat: {
-                    foregroundColor: { red: 1, green: 1, blue: 1 },
-                    bold: true,
+    
+    // Format headers (best-effort): resolve sheetId dynamically to avoid hardcoded 0
+    try {
+      const meta = await this.sheets.spreadsheets.get({ spreadsheetId })
+      const targetSheet = meta.data.sheets?.find((s) => s.properties?.title === sheetName)
+      const sheetId = targetSheet?.properties?.sheetId
+      if (sheetId != null) {
+        await this.sheets.spreadsheets.batchUpdate({
+          spreadsheetId,
+          requestBody: {
+            requests: [
+              {
+                repeatCell: {
+                  range: {
+                    sheetId,
+                    startRowIndex: 0,
+                    endRowIndex: 1,
+                    startColumnIndex: 0,
+                    endColumnIndex: headers.length,
                   },
+                  cell: {
+                    userEnteredFormat: {
+                      backgroundColor: { red: 0.2, green: 0.6, blue: 0.9 },
+                      textFormat: {
+                        foregroundColor: { red: 1, green: 1, blue: 1 },
+                        bold: true,
+                      },
+                    },
+                  },
+                  fields: "userEnteredFormat(backgroundColor,textFormat)",
                 },
               },
-              fields: "userEnteredFormat(backgroundColor,textFormat)",
-            },
+            ],
           },
-        ],
-      },
-    })
+        })
+      } else {
+        // If we cannot resolve the sheetId, skip formatting but keep headers written
+        console.warn("Google Sheets: Could not resolve sheetId for formatting headers. Skipping styling.")
+      }
+    } catch (fmtErr) {
+      // Do not block sheet creation if formatting fails
+      console.warn("Google Sheets: Header formatting skipped due to error:", fmtErr)
+    }
   }
 
   async addOrderToSheet(orderData: OrderSheetData): Promise<boolean> {

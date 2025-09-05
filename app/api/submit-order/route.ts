@@ -173,10 +173,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Send emails and sync to Google Sheets (don't block the response if they fail)
+    // Important: if Google Sheets returns false (no exception), convert to an error so we can log it.
     Promise.all([
       sendCustomerConfirmationEmail(emailData),
       sendAdminNotificationEmail(emailData),
-      addOrderToGoogleSheets(sheetsData),
+      addOrderToGoogleSheets(sheetsData).then((ok) => {
+        if (!ok) {
+          throw new Error("Google Sheets sync returned false (check credentials, spreadsheet ID, and permissions)")
+        }
+      }),
     ]).catch((error) => {
       console.error("Error with post-order processing:", error)
       // Log but don't fail the request
