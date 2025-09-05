@@ -39,10 +39,24 @@ class GoogleSheetsService {
   private sheets: sheets_v4.Sheets
 
   constructor() {
+    // Sanitize private key: remove surrounding quotes and normalize newlines
+    const rawPrivateKey = process.env.GOOGLE_SHEETS_PRIVATE_KEY
+    const privateKey = rawPrivateKey
+      ?.replace(/^"|"$/g, "")
+      ?.replace(/\\n/g, "\n")
+
+    const clientEmail = process.env.GOOGLE_SHEETS_CLIENT_EMAIL
+
+    if (!clientEmail || !privateKey) {
+      console.warn(
+        "Google Sheets: faltan credenciales. Revise GOOGLE_SHEETS_CLIENT_EMAIL y GOOGLE_SHEETS_PRIVATE_KEY",
+      )
+    }
+
     this.auth = new GoogleAuth({
       credentials: {
-        client_email: process.env.GOOGLE_SHEETS_CLIENT_EMAIL,
-        private_key: process.env.GOOGLE_SHEETS_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+        client_email: clientEmail,
+        private_key: privateKey,
       },
       scopes: ["https://www.googleapis.com/auth/spreadsheets"],
     })
@@ -90,48 +104,77 @@ class GoogleSheetsService {
   }
 
   private async addHeaders(spreadsheetId: string, sheetName: string): Promise<void> {
-    const headers = [
-      // Formato requerido: horizontal
-      "Timestamp",
-      "Nombre",
-      "Apellido",
-      "Teléfono",
-      // Campos de productos (horizontal)
-      "Producto 1 - Tipo",
-      "Producto 1 - Color",
-      "Producto 1 - Talle",
-      "Producto 1 - Zona 1",
-      "Producto 1 - Zona 2",
-      "Producto 1 - Zona 3",
-      "Producto 1 - Zona 4",
-      "Producto 1 - Zona 5",
-      "Producto 1 - Antepié (Metatarsal)",
-      "Producto 1 - Cuña Anterior",
-      "Producto 1 - Mediopié (Arco)",
-      "Producto 1 - Cuña Mediopié Externa",
-      "Producto 1 - Retropié (Calcáneo)",
-      "Producto 1 - Realce Talón (mm)",
-      "Producto 1 - Altura Talón",
-      "Producto 1 - Cuña Posterior",
-      "Producto 2 - Tipo",
-      "Producto 2 - Color",
-      "Producto 2 - Talle",
-      "Producto 2 - Zona 1",
-      "Producto 2 - Zona 2",
-      "Producto 2 - Zona 3",
-      "Producto 2 - Zona 4",
-      "Producto 2 - Zona 5",
-      "Producto 2 - Antepié (Metatarsal)",
-      "Producto 2 - Cuña Anterior",
-      "Producto 2 - Mediopié (Arco)",
-      "Producto 2 - Cuña Mediopié Externa",
-      "Producto 2 - Retropié (Calcáneo)",
-      "Producto 2 - Realce Talón (mm)",
-      "Producto 2 - Altura Talón",
-      "Producto 2 - Cuña Posterior",
-      // Notas al final
-      "Observaciones",
-    ]
+    const layout = process.env.GOOGLE_SHEETS_LAYOUT === "rows" ? "rows" : "columns"
+    const headers =
+      layout === "rows"
+        ? [
+            // Layout por fila (una fila por producto)
+            "Timestamp",
+            "Orden ID",
+            "Estado",
+            "Nombre",
+            "Apellido",
+            "Teléfono",
+            "Producto - Tipo",
+            "Color",
+            "Talle",
+            "Zona 1",
+            "Zona 2",
+            "Zona 3",
+            "Zona 4",
+            "Zona 5",
+            "Antepié (Metatarsal)",
+            "Cuña Anterior",
+            "Mediopié (Arco)",
+            "Cuña Mediopié Externa",
+            "Retropié (Calcáneo)",
+            "Realce Talón (mm)",
+            "Altura Talón",
+            "Cuña Posterior",
+            "Observaciones",
+          ]
+        : [
+            // Layout horizontal (existente)
+            "Timestamp",
+            "Nombre",
+            "Apellido",
+            "Teléfono",
+            // Campos de productos (horizontal)
+            "Producto 1 - Tipo",
+            "Producto 1 - Color",
+            "Producto 1 - Talle",
+            "Producto 1 - Zona 1",
+            "Producto 1 - Zona 2",
+            "Producto 1 - Zona 3",
+            "Producto 1 - Zona 4",
+            "Producto 1 - Zona 5",
+            "Producto 1 - Antepié (Metatarsal)",
+            "Producto 1 - Cuña Anterior",
+            "Producto 1 - Mediopié (Arco)",
+            "Producto 1 - Cuña Mediopié Externa",
+            "Producto 1 - Retropié (Calcáneo)",
+            "Producto 1 - Realce Talón (mm)",
+            "Producto 1 - Altura Talón",
+            "Producto 1 - Cuña Posterior",
+            "Producto 2 - Tipo",
+            "Producto 2 - Color",
+            "Producto 2 - Talle",
+            "Producto 2 - Zona 1",
+            "Producto 2 - Zona 2",
+            "Producto 2 - Zona 3",
+            "Producto 2 - Zona 4",
+            "Producto 2 - Zona 5",
+            "Producto 2 - Antepié (Metatarsal)",
+            "Producto 2 - Cuña Anterior",
+            "Producto 2 - Mediopié (Arco)",
+            "Producto 2 - Cuña Mediopié Externa",
+            "Producto 2 - Retropié (Calcáneo)",
+            "Producto 2 - Realce Talón (mm)",
+            "Producto 2 - Altura Talón",
+            "Producto 2 - Cuña Posterior",
+            // Notas al final
+            "Observaciones",
+          ]
 
     await this.sheets.spreadsheets.values.update({
       spreadsheetId,
@@ -192,13 +235,16 @@ class GoogleSheetsService {
       const sheetName = process.env.GOOGLE_SHEETS_SHEET_NAME || "Pedidos"
 
       if (!spreadsheetId) {
-        console.error("Google Sheets spreadsheet ID not configured")
+        console.error("Google Sheets: GOOGLE_SHEETS_SPREADSHEET_ID no configurado")
         return false
       }
 
       // Ensure sheet exists
       const sheetReady = await this.ensureSheetExists(spreadsheetId, sheetName)
       if (!sheetReady) {
+        console.error(
+          `Google Sheets: no se pudo asegurar la existencia de la hoja '${sheetName}' en spreadsheet ${spreadsheetId}`,
+        )
         return false
       }
 
@@ -211,83 +257,139 @@ class GoogleSheetsService {
         lastName = lastName || parts.slice(1).join(" ") || ""
       }
 
-      // Prepare row data con formato requerido
-      const rowData = [
-        new Date(orderData.submittedAt).toLocaleString("es-ES", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        }),
-        firstName || "",
-        lastName || "",
-        orderData.customerPhone || "",
-      ]
+      const layout = process.env.GOOGLE_SHEETS_LAYOUT === "rows" ? "rows" : "columns"
 
-      // Add product data (up to 2 products for now)
-      for (let i = 0; i < 2; i++) {
-        const product = orderData.products[i]
-        if (product) {
-          rowData.push(
-            product.productType,
-            product.templateColor || "",
-            product.templateSize || "",
-            product.zoneOption1,
-            product.zoneOption2,
-            product.zoneOption3,
-            product.zoneOption4,
-            product.zoneOption5,
-            product.forefootMetatarsal || "",
-            product.anteriorWedge || "",
-            product.midfootArch || "",
-            product.midfootExternalWedge || "",
-            product.rearfootCalcaneus || "",
-            product.heelRaiseMm || "",
-            product.heelHeight,
-            product.posteriorWedge,
+      if (layout === "rows") {
+        // Una fila por producto
+        const rows = orderData.products.map((product) => [
+          new Date(orderData.submittedAt).toLocaleString("es-ES", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          }),
+          orderData.orderId,
+          orderData.status || "",
+          firstName || "",
+          lastName || "",
+          orderData.customerPhone || "",
+          product.productType,
+          product.templateColor || "",
+          product.templateSize || "",
+          product.zoneOption1,
+          product.zoneOption2,
+          product.zoneOption3,
+          product.zoneOption4,
+          product.zoneOption5,
+          product.forefootMetatarsal || "",
+          product.anteriorWedge || "",
+          product.midfootArch || "",
+          product.midfootExternalWedge || "",
+          product.rearfootCalcaneus || "",
+          product.heelRaiseMm || "",
+          product.heelHeight,
+          product.posteriorWedge,
+          orderData.notes || "",
+        ])
+
+        const appendRes = await this.sheets.spreadsheets.values.append({
+          spreadsheetId,
+          range: `${sheetName}!A:AZ`,
+          valueInputOption: "RAW",
+          insertDataOption: "INSERT_ROWS",
+          requestBody: {
+            values: rows,
+          },
+        })
+
+        if (appendRes.status !== 200) {
+          console.warn(
+            `Google Sheets: append (rows layout) respondió con status ${appendRes.status} (${appendRes.statusText})`,
           )
-        } else {
-          // Fill empty columns for missing products
-          rowData.push(
-            "", // Tipo
-            "", // Color
-            "", // Talle
-            "", // Zona 1
-            "", // Zona 2
-            "", // Zona 3
-            "", // Zona 4
-            "", // Zona 5
-            "", // Antepié
-            "", // Cuña Anterior
-            "", // Mediopié Arco
-            "", // Cuña Mediopié Externa
-            "", // Retropié Calcáneo
-            "", // Realce mm
-            "", // Altura Talón
-            "", // Cuña Posterior
+        }
+      } else {
+        // Layout horizontal existente (hasta 2 productos)
+        const rowData = [
+          new Date(orderData.submittedAt).toLocaleString("es-ES", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          }),
+          firstName || "",
+          lastName || "",
+          orderData.customerPhone || "",
+        ]
+
+        for (let i = 0; i < 2; i++) {
+          const product = orderData.products[i]
+          if (product) {
+            rowData.push(
+              product.productType,
+              product.templateColor || "",
+              product.templateSize || "",
+              product.zoneOption1,
+              product.zoneOption2,
+              product.zoneOption3,
+              product.zoneOption4,
+              product.zoneOption5,
+              product.forefootMetatarsal || "",
+              product.anteriorWedge || "",
+              product.midfootArch || "",
+              product.midfootExternalWedge || "",
+              product.rearfootCalcaneus || "",
+              product.heelRaiseMm || "",
+              product.heelHeight,
+              product.posteriorWedge,
+            )
+          } else {
+            rowData.push(
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+            )
+          }
+        }
+
+        rowData.push(orderData.notes || "")
+
+        const appendRes = await this.sheets.spreadsheets.values.append({
+          spreadsheetId,
+          range: `${sheetName}!A:AZ`,
+          valueInputOption: "RAW",
+          insertDataOption: "INSERT_ROWS",
+          requestBody: {
+            values: [rowData],
+          },
+        })
+
+        if (appendRes.status !== 200) {
+          console.warn(
+            `Google Sheets: append (columns layout) respondió con status ${appendRes.status} (${appendRes.statusText})`,
           )
         }
       }
 
-      // Observaciones al final
-      rowData.push(orderData.notes || "")
-
-      // Append the row
-      await this.sheets.spreadsheets.values.append({
-        spreadsheetId,
-        range: `${sheetName}!A:AZ`,
-        valueInputOption: "RAW",
-        insertDataOption: "INSERT_ROWS",
-        requestBody: {
-          values: [rowData],
-        },
-      })
-
       return true
     } catch (error) {
-      console.error("Error adding order to sheet:", error)
+      console.error("Google Sheets: error agregando pedido a la hoja:", error)
       return false
     }
   }
@@ -298,7 +400,7 @@ class GoogleSheetsService {
       const sheetName = `Export_${new Date().toISOString().split("T")[0]}`
 
       if (!spreadsheetId) {
-        console.error("Google Sheets spreadsheet ID not configured")
+        console.error("Google Sheets: GOOGLE_SHEETS_SPREADSHEET_ID no configurado")
         return false
       }
 
@@ -389,14 +491,21 @@ class GoogleSheetsService {
   async testConnection(): Promise<boolean> {
     try {
       const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID
-      if (!spreadsheetId) {
+      const clientEmail = process.env.GOOGLE_SHEETS_CLIENT_EMAIL
+      const rawPrivateKey = process.env.GOOGLE_SHEETS_PRIVATE_KEY
+      const privateKey = rawPrivateKey?.replace(/^"|"$/g, "")?.replace(/\\n/g, "\n")
+
+      if (!clientEmail || !privateKey || !spreadsheetId) {
+        console.warn(
+          "Google Sheets: variables incompletas. Requiere GOOGLE_SHEETS_CLIENT_EMAIL, GOOGLE_SHEETS_PRIVATE_KEY y GOOGLE_SHEETS_SPREADSHEET_ID",
+        )
         return false
       }
 
       await this.sheets.spreadsheets.get({ spreadsheetId })
       return true
     } catch (error) {
-      console.error("Google Sheets connection test failed:", error)
+      console.error("Google Sheets: prueba de conexión fallida:", error)
       return false
     }
   }
