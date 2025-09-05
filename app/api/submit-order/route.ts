@@ -13,18 +13,42 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient()
 
-    // Insert customer request
-    const { data: customerRequest, error: customerError } = await supabase
-      .from("customer_requests")
-      .insert({
-        name: validatedData.name,
-        lastname: validatedData.lastname,
-        email: validatedData.email,
-        phone: validatedData.phone || null,
-        status: "pending",
-      })
-      .select()
-      .single()
+    // Insert customer request (try with notes; if column doesn't exist, retry without notes)
+    let customerRequest: any | null = null
+    let customerError: any | null = null
+    {
+      const insertWithNotes = await supabase
+        .from("customer_requests")
+        .insert({
+          name: validatedData.name,
+          lastname: validatedData.lastname,
+          email: validatedData.email,
+          phone: validatedData.phone || null,
+          status: "pending",
+          notes: validatedData.notes || null,
+        })
+        .select()
+        .single()
+      customerRequest = insertWithNotes.data
+      customerError = insertWithNotes.error
+    }
+
+    if (customerError) {
+      // Retry without notes to keep compatibility if the column doesn't exist
+      const insertWithoutNotes = await supabase
+        .from("customer_requests")
+        .insert({
+          name: validatedData.name,
+          lastname: validatedData.lastname,
+          email: validatedData.email,
+          phone: validatedData.phone || null,
+          status: "pending",
+        })
+        .select()
+        .single()
+      customerRequest = insertWithoutNotes.data
+      customerError = insertWithoutNotes.error
+    }
 
     if (customerError) {
       console.error("Error creating customer request:", customerError)
@@ -60,21 +84,35 @@ export async function POST(request: NextRequest) {
         productType: product.product_type,
         quantity: 1, // Each product is quantity 1 in this system
         options: {
+          "Tipo Plantilla": product.product_type,
+          Color: product.template_color,
+          Talle: product.template_size,
           "Zona 1": product.zone_option_1,
           "Zona 2": product.zone_option_2,
           "Zona 3": product.zone_option_3,
           "Zona 4": product.zone_option_4,
           "Zona 5": product.zone_option_5,
+          "Antepié - Zona metatarsal": product.forefoot_metatarsal || "",
+          "Cuña Anterior": product.anterior_wedge || "",
+          "Mediopié - Zona arco": product.midfoot_arch || "",
+          "Cuña Mediopié Externa": product.midfoot_external_wedge || "",
+          "Retropié - Zona calcáneo": product.rearfoot_calcaneus || "",
+          "Detalle de mm (realce en talón)": product.heel_raise_mm || "",
           "Altura del talón": product.heel_height,
           "Cuña posterior": product.posterior_wedge,
         },
       })),
       totalProducts: validatedData.products.length,
       submittedAt: new Date().toISOString(),
+      notes: validatedData.notes || "",
     }
 
     const sheetsData = {
       orderId: customerRequest.id.toString(),
+      // Nuevo formato: nombre y apellido por separado
+      firstName: validatedData.name,
+      lastName: validatedData.lastname,
+      // Compatibilidad: nombre completo por si faltan campos
       customerName: `${validatedData.name} ${validatedData.lastname}`,
       customerEmail: validatedData.email,
       customerPhone: validatedData.phone || "",
@@ -89,7 +127,17 @@ export async function POST(request: NextRequest) {
         zoneOption5: product.zone_option_5,
         heelHeight: product.heel_height,
         posteriorWedge: product.posterior_wedge,
+        // Nuevos campos
+        templateColor: product.template_color || "",
+        templateSize: product.template_size || "",
+        forefootMetatarsal: product.forefoot_metatarsal || "",
+        anteriorWedge: product.anterior_wedge || "",
+        midfootArch: product.midfoot_arch || "",
+        midfootExternalWedge: product.midfoot_external_wedge || "",
+        rearfootCalcaneus: product.rearfoot_calcaneus || "",
+        heelRaiseMm: product.heel_raise_mm || "",
       })),
+      notes: validatedData.notes || "",
     }
 
     // Send emails and sync to Google Sheets (don't block the response if they fail)

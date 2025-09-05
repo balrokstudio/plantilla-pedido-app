@@ -17,6 +17,7 @@ export interface OrderEmailData {
   }>
   totalProducts: number
   submittedAt: string
+  notes?: string
 }
 
 export async function sendCustomerConfirmationEmail(data: OrderEmailData) {
@@ -165,6 +166,7 @@ function generateCustomerEmailTemplate(data: OrderEmailData): string {
               minute: "2-digit",
             })}</p>
             <p><strong>Total de productos:</strong> ${data.totalProducts}</p>
+            ${data.notes ? `<p><strong>Observaciones:</strong> ${data.notes}</p>` : ""}
           </div>
           
           <h3>Productos Solicitados</h3>
@@ -265,6 +267,7 @@ function generateAdminEmailTemplate(data: OrderEmailData): string {
               hour: "2-digit",
               minute: "2-digit",
             })}</p>
+            ${data.notes ? `<p><strong>Observaciones:</strong> ${data.notes}</p>` : ""}
           </div>
           
           <h3>Resumen del Pedido</h3>

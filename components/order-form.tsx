@@ -26,6 +26,7 @@ export function OrderForm() {
       lastname: "",
       email: "",
       phone: "",
+      notes: "",
       products: [
         {
           product_type: "",
@@ -37,6 +38,14 @@ export function OrderForm() {
           zone_option_5: "ninguna",
           heel_height: "ninguna",
           posterior_wedge: "no",
+          template_color: "",
+          template_size: "",
+          forefoot_metatarsal: "",
+          anterior_wedge: "",
+          midfoot_arch: "",
+          midfoot_external_wedge: "",
+          rearfoot_calcaneus: "",
+          heel_raise_mm: "",
         },
       ],
     },
@@ -58,6 +67,14 @@ export function OrderForm() {
       zone_option_5: "ninguna",
       heel_height: "ninguna",
       posterior_wedge: "no",
+      template_color: "",
+      template_size: "",
+      forefoot_metatarsal: "",
+      anterior_wedge: "",
+      midfoot_arch: "",
+      midfoot_external_wedge: "",
+      rearfoot_calcaneus: "",
+      heel_raise_mm: "",
     })
   }
 
@@ -222,6 +239,37 @@ export function OrderForm() {
               <Plus className="h-4 w-4 mr-2" />
               Agregar Otro Producto
             </Button>
+          </CardContent>
+        </Card>
+
+        {/* Notas / Observaciones */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">3</span>
+              </div>
+              Observaciones
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Observaciones</FormLabel>
+                  <FormControl>
+                    <textarea
+                      className="w-full min-h-24 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      placeholder="Escriba aquí cualquier detalle adicional..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </CardContent>
         </Card>
 
