@@ -10,6 +10,15 @@ export const productFormSchema = z.object({
   zone_option_5: z.string().default("ninguna"),
   heel_height: z.string().default("ninguna"),
   posterior_wedge: z.string().default("no"),
+  // Nuevos campos solicitados
+  template_color: z.string().min(1, "Debe ingresar el color"),
+  template_size: z.string().min(1, "Debe seleccionar un talle"),
+  forefoot_metatarsal: z.string().optional().default(""),
+  anterior_wedge: z.string().optional().default(""),
+  midfoot_arch: z.string().optional().default(""),
+  midfoot_external_wedge: z.string().optional().default(""),
+  rearfoot_calcaneus: z.string().optional().default(""),
+  heel_raise_mm: z.string().optional().default(""),
 })
 
 export const orderFormSchema = z.object({
@@ -18,6 +27,7 @@ export const orderFormSchema = z.object({
   email: z.string().email("Debe ingresar un email válido"),
   phone: z.string().optional(),
   products: z.array(productFormSchema).min(1, "Debe agregar al menos un producto"),
+  notes: z.string().optional().default(""),
 })
 
 export type OrderFormData = z.input<typeof orderFormSchema>

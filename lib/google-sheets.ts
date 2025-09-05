@@ -3,11 +3,15 @@ import { type sheets_v4, google } from "googleapis"
 
 interface OrderSheetData {
   orderId: string
-  customerName: string
-  customerEmail: string
+  // Nuevo formato: nombre y apellido por separado
+  firstName?: string
+  lastName?: string
+  // Compatibilidad previa: nombre completo (se dividirá si no se proveen first/last)
+  customerName?: string
+  customerEmail?: string
   customerPhone: string
   submittedAt: string
-  status: string
+  status?: string
   products: Array<{
     productType: string
     zoneOption1: string
@@ -17,7 +21,17 @@ interface OrderSheetData {
     zoneOption5: string
     heelHeight: string
     posteriorWedge: string
+    // Nuevos campos
+    templateColor?: string
+    templateSize?: string
+    forefootMetatarsal?: string
+    anteriorWedge?: string
+    midfootArch?: string
+    midfootExternalWedge?: string
+    rearfootCalcaneus?: string
+    heelRaiseMm?: string
   }>
+  notes?: string
 }
 
 class GoogleSheetsService {
@@ -77,31 +91,51 @@ class GoogleSheetsService {
 
   private async addHeaders(spreadsheetId: string, sheetName: string): Promise<void> {
     const headers = [
-      "ID Pedido",
-      "Fecha",
-      "Cliente",
-      "Email",
+      // Formato requerido: horizontal
+      "Timestamp",
+      "Nombre",
+      "Apellido",
       "Teléfono",
-      "Estado",
+      // Campos de productos (horizontal)
       "Producto 1 - Tipo",
+      "Producto 1 - Color",
+      "Producto 1 - Talle",
       "Producto 1 - Zona 1",
       "Producto 1 - Zona 2",
       "Producto 1 - Zona 3",
       "Producto 1 - Zona 4",
       "Producto 1 - Zona 5",
+      "Producto 1 - Antepié (Metatarsal)",
+      "Producto 1 - Cuña Anterior",
+      "Producto 1 - Mediopié (Arco)",
+      "Producto 1 - Cuña Mediopié Externa",
+      "Producto 1 - Retropié (Calcáneo)",
+      "Producto 1 - Realce Talón (mm)",
       "Producto 1 - Altura Talón",
       "Producto 1 - Cuña Posterior",
       "Producto 2 - Tipo",
+      "Producto 2 - Color",
+      "Producto 2 - Talle",
       "Producto 2 - Zona 1",
       "Producto 2 - Zona 2",
       "Producto 2 - Zona 3",
       "Producto 2 - Zona 4",
       "Producto 2 - Zona 5",
+      "Producto 2 - Antepié (Metatarsal)",
+      "Producto 2 - Cuña Anterior",
+      "Producto 2 - Mediopié (Arco)",
+      "Producto 2 - Cuña Mediopié Externa",
+      "Producto 2 - Retropié (Calcáneo)",
+      "Producto 2 - Realce Talón (mm)",
+      "Producto 2 - Altura Talón",
+      "Producto 2 - Cuña Posterior",
+      // Notas al final
+      "Observaciones",
     ]
 
     await this.sheets.spreadsheets.values.update({
       spreadsheetId,
-      range: `${sheetName}!A1:T1`,
+      range: `${sheetName}!A1:AZ1`,
       valueInputOption: "RAW",
       requestBody: {
         values: [headers],
@@ -155,14 +189,28 @@ class GoogleSheetsService {
         return false
       }
 
-      // Prepare row data
+      // Derivar nombre y apellido si solo viene customerName
+      let firstName = orderData.firstName
+      let lastName = orderData.lastName
+      if ((!firstName || !lastName) && orderData.customerName) {
+        const parts = orderData.customerName.trim().split(/\s+/)
+        firstName = firstName || parts[0] || ""
+        lastName = lastName || parts.slice(1).join(" ") || ""
+      }
+
+      // Prepare row data con formato requerido
       const rowData = [
-        orderData.orderId,
-        new Date(orderData.submittedAt).toLocaleDateString("es-ES"),
-        orderData.customerName,
-        orderData.customerEmail,
+        new Date(orderData.submittedAt).toLocaleString("es-ES", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }),
+        firstName || "",
+        lastName || "",
         orderData.customerPhone || "",
-        orderData.status,
       ]
 
       // Add product data (up to 2 products for now)
@@ -171,24 +219,52 @@ class GoogleSheetsService {
         if (product) {
           rowData.push(
             product.productType,
+            product.templateColor || "",
+            product.templateSize || "",
             product.zoneOption1,
             product.zoneOption2,
             product.zoneOption3,
             product.zoneOption4,
             product.zoneOption5,
+            product.forefootMetatarsal || "",
+            product.anteriorWedge || "",
+            product.midfootArch || "",
+            product.midfootExternalWedge || "",
+            product.rearfootCalcaneus || "",
+            product.heelRaiseMm || "",
             product.heelHeight,
             product.posteriorWedge,
           )
         } else {
           // Fill empty columns for missing products
-          rowData.push("", "", "", "", "", "", "", "")
+          rowData.push(
+            "", // Tipo
+            "", // Color
+            "", // Talle
+            "", // Zona 1
+            "", // Zona 2
+            "", // Zona 3
+            "", // Zona 4
+            "", // Zona 5
+            "", // Antepié
+            "", // Cuña Anterior
+            "", // Mediopié Arco
+            "", // Cuña Mediopié Externa
+            "", // Retropié Calcáneo
+            "", // Realce mm
+            "", // Altura Talón
+            "", // Cuña Posterior
+          )
         }
       }
+
+      // Observaciones al final
+      rowData.push(orderData.notes || "")
 
       // Append the row
       await this.sheets.spreadsheets.values.append({
         spreadsheetId,
-        range: `${sheetName}!A:T`,
+        range: `${sheetName}!A:AZ`,
         valueInputOption: "RAW",
         insertDataOption: "INSERT_ROWS",
         requestBody: {
@@ -236,18 +312,46 @@ class GoogleSheetsService {
           if (product) {
             rowData.push(
               product.productType,
+              product.templateColor || "",
+              product.templateSize || "",
               product.zoneOption1,
               product.zoneOption2,
               product.zoneOption3,
               product.zoneOption4,
               product.zoneOption5,
+              product.forefootMetatarsal || "",
+              product.anteriorWedge || "",
+              product.midfootArch || "",
+              product.midfootExternalWedge || "",
+              product.rearfootCalcaneus || "",
+              product.heelRaiseMm || "",
               product.heelHeight,
               product.posteriorWedge,
             )
           } else {
-            rowData.push("", "", "", "", "", "", "", "")
+            rowData.push(
+              "", // Tipo
+              "", // Color
+              "", // Talle
+              "", // Zona 1
+              "", // Zona 2
+              "", // Zona 3
+              "", // Zona 4
+              "", // Zona 5
+              "", // Antepié
+              "", // Cuña Anterior
+              "", // Mediopié Arco
+              "", // Cuña Mediopié Externa
+              "", // Retropié Calcáneo
+              "", // Realce mm
+              "", // Altura Talón
+              "", // Cuña Posterior
+            )
           }
         }
+
+        // Observaciones al final
+        rowData.push(order.notes || "")
 
         return rowData
       })
@@ -255,7 +359,7 @@ class GoogleSheetsService {
       // Write all data at once
       await this.sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: `${sheetName}!A2:T${allData.length + 1}`,
+        range: `${sheetName}!A2:AZ${allData.length + 1}`,
         valueInputOption: "RAW",
         requestBody: {
           values: allData,
