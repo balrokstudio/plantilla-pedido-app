@@ -14,12 +14,13 @@ interface OrderSheetData {
   status?: string
   products: Array<{
     productType: string
-    zoneOption1: string
-    zoneOption2: string
-    zoneOption3: string
-    zoneOption4: string
-    zoneOption5: string
-    heelHeight: string
+    // Legacy (opcionales con el nuevo esquema)
+    zoneOption1?: string
+    zoneOption2?: string
+    zoneOption3?: string
+    zoneOption4?: string
+    zoneOption5?: string
+    heelHeight?: string
     posteriorWedge: string
     // Nuevos campos
     templateColor?: string
@@ -139,7 +140,7 @@ class GoogleSheetsService {
       }
 
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error(" Error al verificar/crear la hoja:", error);
       if (error.response) {
         console.error('Detalles del error de la API de Google:');
@@ -298,7 +299,7 @@ class GoogleSheetsService {
     console.log(' Encabezados actualizados exitosamente')
     return true
     
-    } catch (error) {
+    } catch (error: any) {
       const errorMsg = ` Error al agregar encabezados: ${error instanceof Error ? error.message : String(error)}`
       console.error(errorMsg)
       return false
@@ -425,7 +426,7 @@ class GoogleSheetsService {
         }
       };
       
-    } catch (error) {
+    } catch (error: any) {
       console.error(' Error en addOrderToSheet:');
       console.error(error);
       
@@ -581,7 +582,8 @@ class GoogleSheetsService {
 export const googleSheetsService = new GoogleSheetsService()
 
 export async function addOrderToGoogleSheets(orderData: OrderSheetData): Promise<boolean> {
-  return await googleSheetsService.addOrderToSheet(orderData)
+  const res = await googleSheetsService.addOrderToSheet(orderData)
+  return res.success === true
 }
 
 export async function exportOrdersToGoogleSheets(orders: OrderSheetData[]): Promise<boolean> {

@@ -23,23 +23,22 @@ export interface CustomerRequest {
 export interface ProductRequest {
   id: string
   customer_request_id: string
+  // Datos del paciente (por producto)
+  patient_name: string
+  patient_lastname: string
+  // Selección principal
   product_type: string
-  zone_option_1: string
-  zone_option_2: string
-  zone_option_3: string
-  zone_option_4: string
-  zone_option_5: string
-  heel_height: string
-  posterior_wedge: string
-  // New physical columns (Option B)
-  template_color?: string | null
   template_size?: string | null
+  template_color?: string | null
+  // Configuraciones específicas por zona
   forefoot_metatarsal?: string | null
   anterior_wedge?: string | null
   midfoot_arch?: string | null
   midfoot_external_wedge?: string | null
   rearfoot_calcaneus?: string | null
   heel_raise_mm?: string | null
+  // Cuña posterior
+  posterior_wedge?: string | null
   created_at: string
 }
 
@@ -49,3 +48,6 @@ export interface AppSetting {
   value: any
   updated_at: string
 }
+
+// Mapeo de colores disponibles por tipo de producto
+export type ProductsColorsMapping = Record<string, string[]>

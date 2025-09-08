@@ -1,24 +1,26 @@
 import { z } from "zod"
 
 export const productFormSchema = z.object({
-  product_type: z.string().min(1, "Debe seleccionar un tipo de producto"),
+  // Fila 1: Información del Paciente
   patient_name: z.string().min(1, "Debe ingresar el nombre del paciente"),
-  zone_option_1: z.string().default("ninguna"),
-  zone_option_2: z.string().default("ninguna"),
-  zone_option_3: z.string().default("ninguna"),
-  zone_option_4: z.string().default("ninguna"),
-  zone_option_5: z.string().default("ninguna"),
-  heel_height: z.string().default("ninguna"),
-  posterior_wedge: z.string().default("no"),
-  // Nuevos campos solicitados
+  patient_lastname: z.string().min(1, "Debe ingresar el apellido del paciente"),
+
+  // Fila 2: Selección principal
+  product_type: z.string().min(1, "Debe seleccionar un tipo de producto"),
+  template_size: z.string().min(1, "Debe seleccionar un talle"),
+  // Color es condicional según producto; lo validamos opcional aquí y forzamos en la UI si corresponde
   template_color: z.string().optional().default(""),
-  template_size: z.string().optional().default(""),
+
+  // Configuraciones específicas por zona
   forefoot_metatarsal: z.string().optional().default(""),
   anterior_wedge: z.string().optional().default(""),
   midfoot_arch: z.string().optional().default(""),
   midfoot_external_wedge: z.string().optional().default(""),
   rearfoot_calcaneus: z.string().optional().default(""),
   heel_raise_mm: z.string().optional().default(""),
+
+  // Cuña Posterior
+  posterior_wedge: z.string().optional().default(""),
 })
 
 export const orderFormSchema = z.object({

@@ -13,13 +13,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Plus, Edit, Trash2, Save, X } from "lucide-react"
 
 const CATEGORIES = [
-  { value: "product_type", label: "Tipo de Producto" },
-  { value: "zone_option_1", label: "Zona 1 - Antepié" },
-  { value: "zone_option_2", label: "Zona 2 - Mediopié" },
-  { value: "zone_option_3", label: "Zona 3 - Retropié" },
-  { value: "zone_option_4", label: "Zona 4 - Dedos" },
-  { value: "zone_option_5", label: "Zona 5 - Borde Externo" },
-  { value: "heel_height", label: "Altura de Talón" },
+  { value: "product_type", label: "Tipo de Plantilla" },
   { value: "posterior_wedge", label: "Cuña Posterior" },
 ]
 

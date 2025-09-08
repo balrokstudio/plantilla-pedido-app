@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { googleSheetsService } from '@/lib/google-sheets';
 
-export async function GET() {
+export async function GET(): Promise<Response> {
   try {
     console.log('🔍 Iniciando prueba de Google Sheets...');
     
@@ -50,17 +50,18 @@ export async function GET() {
         { status: 500 }
       );
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ Error en la prueba de Google Sheets:', error);
     
     let errorMessage = 'Error desconocido';
     let statusCode = 500;
+    const err: any = error as any;
     
-    if (error.response) {
+    if (err?.response) {
       // Error de la API de Google
-      errorMessage = `Error de la API de Google (${error.response.status})`;
-      statusCode = error.response.status;
-    } else if (error.message) {
+      errorMessage = `Error de la API de Google (${err.response.status})`;
+      statusCode = err.response.status;
+    } else if (error instanceof Error && error.message) {
       errorMessage = error.message;
     }
     
@@ -68,9 +69,10 @@ export async function GET() {
       { 
         success: false, 
         error: errorMessage,
-        details: error.response?.data || {}
+        details: err?.response?.data || {}
       },
       { status: statusCode }
     );
   }
 }
+

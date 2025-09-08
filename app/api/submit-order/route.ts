@@ -56,18 +56,14 @@ export async function POST(request: NextRequest) {
       throw new Error("Error al crear el pedido")
     }
 
-    // Insert product requests (with new physical columns)
+    // Insert product requests (nuevo esquema de columnas)
     const productRequests = validatedData.products.map((product) => ({
       customer_request_id: customerRequest.id,
+      // Datos del paciente por producto
+      patient_name: product.patient_name,
+      patient_lastname: product.patient_lastname,
+      // Selección principal y configuraciones
       product_type: product.product_type,
-      zone_option_1: product.zone_option_1,
-      zone_option_2: product.zone_option_2,
-      zone_option_3: product.zone_option_3,
-      zone_option_4: product.zone_option_4,
-      zone_option_5: product.zone_option_5,
-      heel_height: product.heel_height,
-      posterior_wedge: product.posterior_wedge,
-      // New physical columns (Option B)
       template_color: product.template_color || null,
       template_size: product.template_size || null,
       forefoot_metatarsal: product.forefoot_metatarsal || null,
@@ -76,8 +72,9 @@ export async function POST(request: NextRequest) {
       midfoot_external_wedge: product.midfoot_external_wedge || null,
       rearfoot_calcaneus: product.rearfoot_calcaneus || null,
       heel_raise_mm: product.heel_raise_mm || null,
+      posterior_wedge: product.posterior_wedge || null,
     }))
-    // Try inserting with new columns first; if it fails (e.g., columns not present yet), retry with legacy fields only
+    // Try inserting with new columns first; if it fails, fallback is no longer supported (zoneOption removido)
     let productsError: any | null = null
     {
       const insertProducts = await supabase.from("product_requests").insert(productRequests)
@@ -85,20 +82,14 @@ export async function POST(request: NextRequest) {
     }
 
     if (productsError) {
-      console.warn("Insert with new product columns failed, retrying with legacy fields only:", productsError?.message || productsError)
-      const legacyProductRequests = validatedData.products.map((product) => ({
+      console.error("Error inserting product requests with new schema:", productsError)
+      // Fallback: intentar insertar usando columnas legacy mínimas que existen por defecto
+      const legacyMinimal = validatedData.products.map((product) => ({
         customer_request_id: customerRequest.id,
         product_type: product.product_type,
-        zone_option_1: product.zone_option_1,
-        zone_option_2: product.zone_option_2,
-        zone_option_3: product.zone_option_3,
-        zone_option_4: product.zone_option_4,
-        zone_option_5: product.zone_option_5,
-        heel_height: product.heel_height,
-        posterior_wedge: product.posterior_wedge,
+        posterior_wedge: product.posterior_wedge || "No",
       }))
-
-      const retry = await supabase.from("product_requests").insert(legacyProductRequests)
+      const retry = await supabase.from("product_requests").insert(legacyMinimal)
       productsError = retry.error
     }
 
@@ -119,18 +110,14 @@ export async function POST(request: NextRequest) {
           "Tipo Plantilla": product.product_type,
           Color: product.template_color,
           Talle: product.template_size,
-          "Zona 1": product.zone_option_1,
-          "Zona 2": product.zone_option_2,
-          "Zona 3": product.zone_option_3,
-          "Zona 4": product.zone_option_4,
-          "Zona 5": product.zone_option_5,
+          "Nombre Paciente": product.patient_name,
+          "Apellido Paciente": product.patient_lastname,
           "Antepié - Zona metatarsal": product.forefoot_metatarsal || "",
           "Cuña Anterior": product.anterior_wedge || "",
           "Mediopié - Zona arco": product.midfoot_arch || "",
           "Cuña Mediopié Externa": product.midfoot_external_wedge || "",
           "Retropié - Zona calcáneo": product.rearfoot_calcaneus || "",
           "Detalle de mm (realce en talón)": product.heel_raise_mm || "",
-          "Altura del talón": product.heel_height,
           "Cuña posterior": product.posterior_wedge,
         },
       })),
@@ -152,13 +139,7 @@ export async function POST(request: NextRequest) {
       status: "pending",
       products: validatedData.products.map((product) => ({
         productType: product.product_type,
-        zoneOption1: product.zone_option_1,
-        zoneOption2: product.zone_option_2,
-        zoneOption3: product.zone_option_3,
-        zoneOption4: product.zone_option_4,
-        zoneOption5: product.zone_option_5,
-        heelHeight: product.heel_height,
-        posteriorWedge: product.posterior_wedge,
+        posteriorWedge: product.posterior_wedge || "",
         // Nuevos campos
         templateColor: product.template_color || "",
         templateSize: product.template_size || "",

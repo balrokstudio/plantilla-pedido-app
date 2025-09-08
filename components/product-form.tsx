@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import type { UseFormReturn } from "react-hook-form"
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -11,6 +11,7 @@ import type { OrderFormData } from "@/lib/validations"
 import { createClient } from "@/lib/supabase/client"
 import { Input } from "@/components/ui/input"
 import { useFormConfig } from "@/hooks/use-form-config"
+import { Label } from "@/components/ui/label"
 
 interface ProductFormProps {
   form: UseFormReturn<OrderFormData>
@@ -20,6 +21,7 @@ interface ProductFormProps {
 export function ProductForm({ form, index }: ProductFormProps) {
   const [productOptions, setProductOptions] = useState<Record<string, ProductOption[]>>({})
   const [loading, setLoading] = useState(true)
+  const [productsColors, setProductsColors] = useState<Record<string, string[]>>({})
   const { config } = useFormConfig()
 
   // Listas fijas solicitadas por el cliente
@@ -74,49 +76,28 @@ export function ProductForm({ form, index }: ProductFormProps) {
   const FOREFOOT_OPTIONS = ["Oliva Barra", "Pad Running", "Pad Medialuna", "Valente Valenti"]
   const ANTERIOR_WEDGE_OPTIONS = ["Cuña Anterior Externa", "Cuña Anterior Interna"]
   const MIDFOOT_ARCH_OPTIONS = ["Arco Flex", "Arco Semiblando", "Arco Látex"]
-  const MIDFOOT_EXTERNAL_WEDGE_OPTIONS = ["Si", "No"]
+  const MIDFOOT_EXTERNAL_WEDGE_OPTIONS = ["Sí", "No"]
   const REARFOOT_OPTIONS = [
-    "Cuña Posterior Externa",
     "Botón Látex",
-    "Talonera Descanso",
-    "Espolón",
+    "Talonera Descanso Espolón",
     "Realce en talón",
   ]
   const HEEL_RAISE_MM_OPTIONS = ["3mm", "5mm", "6mm", "8mm", "9mm", "10mm"]
 
   useEffect(() => {
-    const fetchProductOptions = async () => {
+    const init = async () => {
       try {
-        const supabase = createClient()
-        const { data, error } = await supabase
-          .from("product_options")
-          .select("*")
-          .eq("is_active", true)
-          .order("order_index")
-
-        if (error) throw error
-
-        // Group options by category
-        const grouped = data.reduce(
-          (acc, option) => {
-            if (!acc[option.category]) {
-              acc[option.category] = []
-            }
-            acc[option.category].push(option)
-            return acc
-          },
-          {} as Record<string, ProductOption[]>,
-        )
-
-        setProductOptions(grouped)
-      } catch (error) {
-        console.error("Error fetching product options:", error)
+        // Cargar mapeo de colores por producto
+        const res = await fetch("/api/products-colors", { cache: "no-store" })
+        const json = await res.json().catch(() => null)
+        if (json?.success && json?.data) setProductsColors(json.data)
+      } catch (e) {
+        console.warn("No se pudo cargar products-colors:", e)
       } finally {
         setLoading(false)
       }
     }
-
-    fetchProductOptions()
+    init()
   }, [])
 
   const openZonesHelp = () => {
@@ -154,77 +135,114 @@ export function ProductForm({ form, index }: ProductFormProps) {
         )}
       />
 
-      {/* Tipo Plantilla */}
       <FormField
         control={form.control}
-        name={`products.${index}.product_type`}
+        name={`products.${index}.patient_lastname` as any}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Tipo Plantilla *</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione el tipo" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {PLANTILLA_TYPES.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {value}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <FormLabel>Apellido del Paciente *</FormLabel>
+            <FormControl>
+              <Input placeholder="Ingrese el apellido del paciente" {...field} />
+            </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
 
-      {/* Color */}
-      {config.productFields.template_color !== false && (
+      {/* Fila 2: Tipo, Talle, Color (3 columnas) */}
+      <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Tipo Plantilla */}
         <FormField
           control={form.control}
-          name={`products.${index}.template_color` as any}
+          name={`products.${index}.product_type`}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{config.productLabels?.template_color || "Color"}</FormLabel>
-              <FormControl>
-                <Input placeholder="Ingrese el color" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      )}
-
-      {/* Talle */}
-      {config.productFields.template_size !== false && (
-        <FormField
-          control={form.control}
-          name={`products.${index}.template_size` as any}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{config.productLabels?.template_size || "Selección de talle"}</FormLabel>
+              <FormLabel>Tipo Plantilla *</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Seleccione el talle" />
+                    <SelectValue placeholder="Seleccione el tipo" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {SIZE_OPTIONS.map((value) => (
+                  {PLANTILLA_TYPES.map((value) => (
                     <SelectItem key={value} value={value}>
                       {value}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-gray-500 mt-1">Los cm son el largo total de la plantilla a fabricar</p>
               <FormMessage />
             </FormItem>
           )}
         />
-      )}
+
+        {/* Talle */}
+        {config.productFields.template_size !== false && (
+          <FormField
+            control={form.control}
+            name={`products.${index}.template_size` as any}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{config.productLabels?.template_size || "Selección de talle"}</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione el talle" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {SIZE_OPTIONS.map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {value}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-500 mt-1">Los cm son el largo total de la plantilla a fabricar</p>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {/* Color condicional por producto */}
+        {config.productFields.template_color !== false && (
+          <FormField
+            control={form.control}
+            name={`products.${index}.template_color` as any}
+            render={({ field }) => {
+              const selectedType = form.watch(`products.${index}.product_type` as const) as string
+              const colors = (productsColors?.[selectedType] || []) as string[]
+              const show = Array.isArray(colors) && colors.length > 0
+              return (
+                <FormItem>
+                  <FormLabel>{config.productLabels?.template_color || "Color"}</FormLabel>
+                  {show ? (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccione color" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {colors.map((c) => (
+                          <SelectItem key={c} value={c}>
+                            {c}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="text-sm text-gray-500">Este producto no posee variantes de color</div>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )
+            }}
+          />
+        )}
+      </div>
 
       {/* Antepié - Zona metatarsal */}
       {config.productFields.forefoot_metatarsal !== false && (
@@ -332,20 +350,20 @@ export function ProductForm({ form, index }: ProductFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{config.productLabels?.midfoot_external_wedge || "Cuña Mediopié Externa"}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {MIDFOOT_EXTERNAL_WEDGE_OPTIONS.map((value) => (
-                        <SelectItem key={value} value={value}>
-                          {value}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-4 py-2">
+                    {MIDFOOT_EXTERNAL_WEDGE_OPTIONS.map((opt) => (
+                      <label key={opt} className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name={`midfoot_external_wedge_${index}`}
+                          value={opt}
+                          checked={field.value === opt}
+                          onChange={() => field.onChange(opt)}
+                        />
+                        <span>{opt}</span>
+                      </label>
+                    ))}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
