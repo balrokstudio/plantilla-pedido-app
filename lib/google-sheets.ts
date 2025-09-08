@@ -159,75 +159,72 @@ class GoogleSheetsService {
       console.log(` Layout de encabezados: ${layout}`);
       
       const headers =
-      layout === "rows"
-        ? [
-            // Layout por fila (una fila por producto)
-            "Timestamp",
-            "Orden ID",
-            "Estado",
-            "Nombre",
-            "Apellido",
-            "Teléfono",
-            "Producto - Tipo",
-            "Color",
-            "Talle",
-            "Zona 1",
-            "Zona 2",
-            "Zona 3",
-            "Zona 4",
-            "Zona 5",
-            "Antepié (Metatarsal)",
-            "Cuña Anterior",
-            "Mediopié (Arco)",
-            "Cuña Mediopié Externa",
-            "Retropié (Calcáneo)",
-            "Realce Talón (mm)",
-            "Altura Talón",
-            "Cuña Posterior",
-            "Observaciones",
-          ]
-        : [
-            // Layout horizontal (existente)
-            "Timestamp",
-            "Nombre",
-            "Apellido",
-            "Teléfono",
-            // Campos de productos (horizontal)
-            "Producto 1 - Tipo",
-            "Producto 1 - Color",
-            "Producto 1 - Talle",
-            "Producto 1 - Zona 1",
-            "Producto 1 - Zona 2",
-            "Producto 1 - Zona 3",
-            "Producto 1 - Zona 4",
-            "Producto 1 - Zona 5",
-            "Producto 1 - Antepié (Metatarsal)",
-            "Producto 1 - Cuña Anterior",
-            "Producto 1 - Mediopié (Arco)",
-            "Producto 1 - Cuña Mediopié Externa",
-            "Producto 1 - Retropié (Calcáneo)",
-            "Producto 1 - Realce Talón (mm)",
-            "Producto 1 - Altura Talón",
-            "Producto 1 - Cuña Posterior",
-            "Producto 2 - Tipo",
-            "Producto 2 - Color",
-            "Producto 2 - Talle",
-            "Producto 2 - Zona 1",
-            "Producto 2 - Zona 2",
-            "Producto 2 - Zona 3",
-            "Producto 2 - Zona 4",
-            "Producto 2 - Zona 5",
-            "Producto 2 - Antepié (Metatarsal)",
-            "Producto 2 - Cuña Anterior",
-            "Producto 2 - Mediopié (Arco)",
-            "Producto 2 - Cuña Mediopié Externa",
-            "Producto 2 - Retropié (Calcáneo)",
-            "Producto 2 - Realce Talón (mm)",
-            "Producto 2 - Altura Talón",
-            "Producto 2 - Cuña Posterior",
-            // Notas al final
-            "Observaciones",
-          ]
+        layout === "rows"
+          ? [
+              // Una fila por pedido, con dos sets de producto (1 y 2)
+              "Timestamp",
+              "Orden ID",
+              "Estado",
+              "Nombre",
+              "Apellido",
+              "Email",
+              "Teléfono",
+              // Producto 1
+              "Producto 1 - Tipo",
+              "Producto 1 - Color",
+              "Producto 1 - Talle",
+              "Producto 1 - Antepié (Metatarsal)",
+              "Producto 1 - Cuña Anterior",
+              "Producto 1 - Mediopié (Arco)",
+              "Producto 1 - Cuña Mediopié Externa",
+              "Producto 1 - Retropié (Calcáneo)",
+              "Producto 1 - Realce Talón (mm)",
+              "Producto 1 - Cuña Posterior",
+              // Producto 2
+              "Producto 2 - Tipo",
+              "Producto 2 - Color",
+              "Producto 2 - Talle",
+              "Producto 2 - Antepié (Metatarsal)",
+              "Producto 2 - Cuña Anterior",
+              "Producto 2 - Mediopié (Arco)",
+              "Producto 2 - Cuña Mediopié Externa",
+              "Producto 2 - Retropié (Calcáneo)",
+              "Producto 2 - Realce Talón (mm)",
+              "Producto 2 - Cuña Posterior",
+              // Notas al final
+              "Observaciones",
+            ]
+          : [
+              // Layout horizontal: misma estructura en una fila
+              "Timestamp",
+              "Orden ID",
+              "Estado",
+              "Nombre",
+              "Apellido",
+              "Email",
+              "Teléfono",
+              "Producto 1 - Tipo",
+              "Producto 1 - Color",
+              "Producto 1 - Talle",
+              "Producto 1 - Antepié (Metatarsal)",
+              "Producto 1 - Cuña Anterior",
+              "Producto 1 - Mediopié (Arco)",
+              "Producto 1 - Cuña Mediopié Externa",
+              "Producto 1 - Retropié (Calcáneo)",
+              "Producto 1 - Realce Talón (mm)",
+              "Producto 1 - Cuña Posterior",
+              "Producto 2 - Tipo",
+              "Producto 2 - Color",
+              "Producto 2 - Talle",
+              "Producto 2 - Antepié (Metatarsal)",
+              "Producto 2 - Cuña Anterior",
+              "Producto 2 - Mediopié (Arco)",
+              "Producto 2 - Cuña Mediopié Externa",
+              "Producto 2 - Retropié (Calcáneo)",
+              "Producto 2 - Realce Talón (mm)",
+              "Producto 2 - Cuña Posterior",
+              "Observaciones",
+            ]
 
       console.log(' Actualizando encabezados de la hoja');
       const updateResponse = await this.sheets.spreadsheets.values.update({
@@ -307,59 +304,45 @@ class GoogleSheetsService {
   }
 
   private formatOrderData(orderData: OrderSheetData): any[] {
-    // Formato de datos para Google Sheets
-    const rowData = [
+    // Formato de datos para Google Sheets (alineado con headers)
+    const p1 = orderData.products[0] || {}
+    const p2 = orderData.products[1] || {}
+    const firstName = orderData.firstName || orderData.customerName?.split(' ')[0] || ''
+    const lastName = orderData.lastName || orderData.customerName?.split(' ').slice(1).join(' ') || ''
+
+    return [
       new Date().toISOString(), // Timestamp
       orderData.orderId || '',
       orderData.status || 'pendiente',
-      orderData.firstName || orderData.customerName?.split(' ')[0] || '',
-      orderData.lastName || orderData.customerName?.split(' ').slice(1).join(' ') || '',
+      firstName,
+      lastName,
       orderData.customerEmail || '',
       orderData.customerPhone || '',
-      '', // Dirección (no está en el tipo actual)
-      '', // Código Postal
-      '', // Ciudad
-      '', // Provincia
-      '', // País
       // Producto 1
-      orderData.products[0]?.productType || '',
-      orderData.products[0]?.zoneOption1 || '',
-      orderData.products[0]?.zoneOption2 || '',
-      orderData.products[0]?.zoneOption3 || '',
-      orderData.products[0]?.zoneOption4 || '',
-      orderData.products[0]?.zoneOption5 || '',
-      orderData.products[0]?.templateColor || '',
-      orderData.products[0]?.templateSize || '',
-      orderData.products[0]?.forefootMetatarsal || '',
-      orderData.products[0]?.anteriorWedge || '',
-      orderData.products[0]?.midfootArch || '',
-      orderData.products[0]?.midfootExternalWedge || '',
-      orderData.products[0]?.rearfootCalcaneus || '',
-      orderData.products[0]?.heelRaiseMm || '',
-      orderData.products[0]?.heelHeight || '',
-      orderData.products[0]?.posteriorWedge || '',
-      // Producto 2 (si existe)
-      orderData.products[1]?.productType || '',
-      orderData.products[1]?.zoneOption1 || '',
-      orderData.products[1]?.zoneOption2 || '',
-      orderData.products[1]?.zoneOption3 || '',
-      orderData.products[1]?.zoneOption4 || '',
-      orderData.products[1]?.zoneOption5 || '',
-      orderData.products[1]?.templateColor || '',
-      orderData.products[1]?.templateSize || '',
-      orderData.products[1]?.forefootMetatarsal || '',
-      orderData.products[1]?.anteriorWedge || '',
-      orderData.products[1]?.midfootArch || '',
-      orderData.products[1]?.midfootExternalWedge || '',
-      orderData.products[1]?.rearfootCalcaneus || '',
-      orderData.products[1]?.heelRaiseMm || '',
-      orderData.products[1]?.heelHeight || '',
-      orderData.products[1]?.posteriorWedge || '',
+      p1.productType || '',
+      p1.templateColor || '',
+      p1.templateSize || '',
+      p1.forefootMetatarsal || '',
+      p1.anteriorWedge || '',
+      p1.midfootArch || '',
+      p1.midfootExternalWedge || '',
+      p1.rearfootCalcaneus || '',
+      p1.heelRaiseMm || '',
+      p1.posteriorWedge || '',
+      // Producto 2
+      p2.productType || '',
+      p2.templateColor || '',
+      p2.templateSize || '',
+      p2.forefootMetatarsal || '',
+      p2.anteriorWedge || '',
+      p2.midfootArch || '',
+      p2.midfootExternalWedge || '',
+      p2.rearfootCalcaneus || '',
+      p2.heelRaiseMm || '',
+      p2.posteriorWedge || '',
       // Notas
       orderData.notes || ''
-    ];
-
-    return rowData;
+    ]
   }
 
   async addOrderToSheet(orderData: OrderSheetData): Promise<{
@@ -477,66 +460,11 @@ class GoogleSheetsService {
         return false
       }
 
-      // Prepare all data
-      const allData = orders.map((order) => {
-        const rowData = [
-          order.orderId,
-          new Date(order.submittedAt).toLocaleDateString("es-ES"),
-          order.customerName,
-          order.customerEmail,
-          order.customerPhone || "",
-          order.status,
-        ]
+      // Encabezados para la hoja de exportación
+      await this.addHeaders(sheetName)
 
-        // Add product data
-        for (let i = 0; i < 2; i++) {
-          const product = order.products[i]
-          if (product) {
-            rowData.push(
-              product.productType,
-              product.templateColor || "",
-              product.templateSize || "",
-              product.zoneOption1,
-              product.zoneOption2,
-              product.zoneOption3,
-              product.zoneOption4,
-              product.zoneOption5,
-              product.forefootMetatarsal || "",
-              product.anteriorWedge || "",
-              product.midfootArch || "",
-              product.midfootExternalWedge || "",
-              product.rearfootCalcaneus || "",
-              product.heelRaiseMm || "",
-              product.heelHeight,
-              product.posteriorWedge,
-            )
-          } else {
-            rowData.push(
-              "", // Tipo
-              "", // Color
-              "", // Talle
-              "", // Zona 1
-              "", // Zona 2
-              "", // Zona 3
-              "", // Zona 4
-              "", // Zona 5
-              "", // Antepié
-              "", // Cuña Anterior
-              "", // Mediopié Arco
-              "", // Cuña Mediopié Externa
-              "", // Retropié Calcáneo
-              "", // Realce mm
-              "", // Altura Talón
-              "", // Cuña Posterior
-            )
-          }
-        }
-
-        // Observaciones al final
-        rowData.push(order.notes || "")
-
-        return rowData
-      })
+      // Preparar datos según el mismo formato de headers
+      const allData = orders.map((order) => this.formatOrderData(order))
 
       // Write all data at once
       await this.sheets.spreadsheets.values.update({

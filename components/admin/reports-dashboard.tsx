@@ -17,6 +17,16 @@ type ProductRow = {
   customer_request_id: string
   product_type: string | null
   template_color: string | null
+  template_size?: string | null
+  patient_name?: string | null
+  patient_lastname?: string | null
+  forefoot_metatarsal?: string | null
+  anterior_wedge?: string | null
+  midfoot_arch?: string | null
+  midfoot_external_wedge?: string | null
+  rearfoot_calcaneus?: string | null
+  heel_raise_mm?: string | null
+  posterior_wedge?: string | null
   created_at: string
 }
 
@@ -68,7 +78,11 @@ export function ReportsDashboard() {
         const supabase = createClient()
         const [{ data: cust }, { data: prod }] = await Promise.all([
           supabase.from("customer_requests").select("id,email,status,created_at"),
-          supabase.from("product_requests").select("id,customer_request_id,product_type,template_color,created_at"),
+          supabase
+            .from("product_requests")
+            .select(
+              "id,customer_request_id,product_type,template_color,template_size,patient_name,patient_lastname,forefoot_metatarsal,anterior_wedge,midfoot_arch,midfoot_external_wedge,rearfoot_calcaneus,heel_raise_mm,posterior_wedge,created_at"
+            ),
         ])
         setCustomers(cust || [])
         setProducts(prod || [])
@@ -80,6 +94,19 @@ export function ReportsDashboard() {
     }
     load()
   }, [])
+
+  // Helper para construir distribuciones
+  const buildDistribution = (values: Array<string | null | undefined>) => {
+    const map = new Map<string, number>()
+    for (const v of values) {
+      if (v && String(v).trim()) {
+        const key = String(v)
+        map.set(key, (map.get(key) || 0) + 1)
+      }
+    }
+    const labels = Array.from(map.keys())
+    return labels.map((l, i) => ({ label: l, value: map.get(l) || 0, color: palette[i % palette.length] }))
+  }
 
   const emailsUnique = useMemo(() => {
     const set = new Set<string>()
@@ -97,18 +124,25 @@ export function ReportsDashboard() {
   }, [customers])
 
   const byProductType = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const p of products) if (p.product_type) map.set(p.product_type, (map.get(p.product_type) || 0) + 1)
-    const labels = Array.from(map.keys())
-    return labels.map((l, i) => ({ label: l, value: map.get(l) || 0, color: palette[i % palette.length] }))
+    return buildDistribution(products.map((p) => p.product_type))
   }, [products])
 
   const byColor = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const p of products) if (p.template_color) map.set(p.template_color, (map.get(p.template_color) || 0) + 1)
-    const labels = Array.from(map.keys())
-    return labels.map((l, i) => ({ label: l, value: map.get(l) || 0, color: palette[i % palette.length] }))
+    return buildDistribution(products.map((p) => p.template_color))
   }, [products])
+
+  const bySize = useMemo(() => buildDistribution(products.map((p) => p.template_size)), [products])
+  const byPatientName = useMemo(() => buildDistribution(products.map((p) => p.patient_name)), [products])
+  const byPatientLastname = useMemo(() => buildDistribution(products.map((p) => p.patient_lastname)), [products])
+
+  // Zonas y configuraciones específicas
+  const byForefootMetatarsal = useMemo(() => buildDistribution(products.map((p) => p.forefoot_metatarsal)), [products])
+  const byAnteriorWedge = useMemo(() => buildDistribution(products.map((p) => p.anterior_wedge)), [products])
+  const byMidfootArch = useMemo(() => buildDistribution(products.map((p) => p.midfoot_arch)), [products])
+  const byMidfootExternalWedge = useMemo(() => buildDistribution(products.map((p) => p.midfoot_external_wedge)), [products])
+  const byRearfootCalcaneus = useMemo(() => buildDistribution(products.map((p) => p.rearfoot_calcaneus)), [products])
+  const byHeelRaiseMm = useMemo(() => buildDistribution(products.map((p) => p.heel_raise_mm)), [products])
+  const byPosteriorWedge = useMemo(() => buildDistribution(products.map((p) => p.posterior_wedge)), [products])
 
   const copyEmails = async () => {
     try {
@@ -174,6 +208,218 @@ export function ReportsDashboard() {
               <PieChart data={byColor} />
               <ul className="text-sm space-y-1 max-h-40 overflow-auto">
                 {byColor.map((d) => (
+                  <li key={d.label} className="flex items-center gap-2">
+                    <span className="inline-block w-3 h-3 rounded" style={{ background: d.color }} />
+                    <span className="text-gray-600 dark:text-gray-300">{d.label}</span>
+                    <span className="ml-auto font-medium">{d.value}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Segunda fila */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Pedidos por Talle</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-6">
+              <PieChart data={bySize} />
+              <ul className="text-sm space-y-1 max-h-40 overflow-auto">
+                {bySize.map((d) => (
+                  <li key={d.label} className="flex items-center gap-2">
+                    <span className="inline-block w-3 h-3 rounded" style={{ background: d.color }} />
+                    <span className="text-gray-600 dark:text-gray-300">{d.label}</span>
+                    <span className="ml-auto font-medium">{d.value}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Nombre Paciente</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-6">
+              <PieChart data={byPatientName} />
+              <ul className="text-sm space-y-1 max-h-40 overflow-auto">
+                {byPatientName.map((d) => (
+                  <li key={d.label} className="flex items-center gap-2">
+                    <span className="inline-block w-3 h-3 rounded" style={{ background: d.color }} />
+                    <span className="text-gray-600 dark:text-gray-300">{d.label}</span>
+                    <span className="ml-auto font-medium">{d.value}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Apellido Paciente</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-6">
+              <PieChart data={byPatientLastname} />
+              <ul className="text-sm space-y-1 max-h-40 overflow-auto">
+                {byPatientLastname.map((d) => (
+                  <li key={d.label} className="flex items-center gap-2">
+                    <span className="inline-block w-3 h-3 rounded" style={{ background: d.color }} />
+                    <span className="text-gray-600 dark:text-gray-300">{d.label}</span>
+                    <span className="ml-auto font-medium">{d.value}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Tercera fila - Zonas */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Antepié - Zona metatarsal</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-6">
+              <PieChart data={byForefootMetatarsal} />
+              <ul className="text-sm space-y-1 max-h-40 overflow-auto">
+                {byForefootMetatarsal.map((d) => (
+                  <li key={d.label} className="flex items-center gap-2">
+                    <span className="inline-block w-3 h-3 rounded" style={{ background: d.color }} />
+                    <span className="text-gray-600 dark:text-gray-300">{d.label}</span>
+                    <span className="ml-auto font-medium">{d.value}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Cuña Anterior</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-6">
+              <PieChart data={byAnteriorWedge} />
+              <ul className="text-sm space-y-1 max-h-40 overflow-auto">
+                {byAnteriorWedge.map((d) => (
+                  <li key={d.label} className="flex items-center gap-2">
+                    <span className="inline-block w-3 h-3 rounded" style={{ background: d.color }} />
+                    <span className="text-gray-600 dark:text-gray-300">{d.label}</span>
+                    <span className="ml-auto font-medium">{d.value}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Mediopié - Zona arco</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-6">
+              <PieChart data={byMidfootArch} />
+              <ul className="text-sm space-y-1 max-h-40 overflow-auto">
+                {byMidfootArch.map((d) => (
+                  <li key={d.label} className="flex items-center gap-2">
+                    <span className="inline-block w-3 h-3 rounded" style={{ background: d.color }} />
+                    <span className="text-gray-600 dark:text-gray-300">{d.label}</span>
+                    <span className="ml-auto font-medium">{d.value}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Cuarta fila - Zonas */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Cuña Mediopié Externa</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-6">
+              <PieChart data={byMidfootExternalWedge} />
+              <ul className="text-sm space-y-1 max-h-40 overflow-auto">
+                {byMidfootExternalWedge.map((d) => (
+                  <li key={d.label} className="flex items-center gap-2">
+                    <span className="inline-block w-3 h-3 rounded" style={{ background: d.color }} />
+                    <span className="text-gray-600 dark:text-gray-300">{d.label}</span>
+                    <span className="ml-auto font-medium">{d.value}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Retropié - Zona calcáneo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-6">
+              <PieChart data={byRearfootCalcaneus} />
+              <ul className="text-sm space-y-1 max-h-40 overflow-auto">
+                {byRearfootCalcaneus.map((d) => (
+                  <li key={d.label} className="flex items-center gap-2">
+                    <span className="inline-block w-3 h-3 rounded" style={{ background: d.color }} />
+                    <span className="text-gray-600 dark:text-gray-300">{d.label}</span>
+                    <span className="ml-auto font-medium">{d.value}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Realce en talón (mm)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-6">
+              <PieChart data={byHeelRaiseMm} />
+              <ul className="text-sm space-y-1 max-h-40 overflow-auto">
+                {byHeelRaiseMm.map((d) => (
+                  <li key={d.label} className="flex items-center gap-2">
+                    <span className="inline-block w-3 h-3 rounded" style={{ background: d.color }} />
+                    <span className="text-gray-600 dark:text-gray-300">{d.label}</span>
+                    <span className="ml-auto font-medium">{d.value}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quinta fila */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Cuña Posterior</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-6">
+              <PieChart data={byPosteriorWedge} />
+              <ul className="text-sm space-y-1 max-h-40 overflow-auto">
+                {byPosteriorWedge.map((d) => (
                   <li key={d.label} className="flex items-center gap-2">
                     <span className="inline-block w-3 h-3 rounded" style={{ background: d.color }} />
                     <span className="text-gray-600 dark:text-gray-300">{d.label}</span>

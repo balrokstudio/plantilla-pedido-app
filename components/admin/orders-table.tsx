@@ -14,7 +14,7 @@ import { es } from "date-fns/locale"
 import { Eye, Search, Filter } from "lucide-react"
 
 export function OrdersTable() {
-  const [orders, setOrders] = useState<CustomerRequest[]>([])
+  const [orders, setOrders] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
@@ -23,7 +23,10 @@ export function OrdersTable() {
     const fetchOrders = async () => {
       try {
         const supabase = createClient()
-        let query = supabase.from("customer_requests").select("*").order("created_at", { ascending: false })
+        let query = supabase
+          .from("customer_requests")
+          .select("*, product_requests (id, product_type, template_color, template_size)")
+          .order("created_at", { ascending: false })
 
         if (statusFilter !== "all") {
           query = query.eq("status", statusFilter)
@@ -123,7 +126,10 @@ export function OrdersTable() {
           <p className="text-gray-500 dark:text-gray-400 text-center py-8">No se encontraron pedidos</p>
         ) : (
           <div className="space-y-4">
-            {filteredOrders.map((order) => (
+            {filteredOrders.map((order) => {
+              const products = order.product_requests || []
+              const first = products[0]
+              return (
               <div
                 key={order.id}
                 className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
@@ -137,6 +143,23 @@ export function OrdersTable() {
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{order.email}</p>
                   {order.phone && <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{order.phone}</p>}
+                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                    {products.length > 0 ? (
+                      <span>
+                        {products.length} producto{products.length > 1 ? 's' : ''}
+                        {first && (
+                          <>
+                            {" · "}
+                            {first.product_type || 'Tipo N/D'}
+                            {first.template_color ? `, ${first.template_color}` : ''}
+                            {first.template_size ? `, ${first.template_size}` : ''}
+                          </>
+                        )}
+                      </span>
+                    ) : (
+                      <span>Sin productos</span>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-500 dark:text-gray-500">
                     {formatDistanceToNow(new Date(order.created_at), {
                       addSuffix: true,
@@ -151,7 +174,8 @@ export function OrdersTable() {
                   </Button>
                 </Link>
               </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </CardContent>
