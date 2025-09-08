@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { AdminLayout } from "@/components/admin/admin-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ReportsTools } from "@/components/admin/reports-tools"
+import { ReportsDashboard } from "@/components/admin/reports-dashboard"
 
 export default async function AdminReportsPage() {
   const supabase = await createClient()
@@ -30,6 +31,16 @@ export default async function AdminReportsPage() {
           </CardHeader>
           <CardContent>
             <ReportsTools />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Estadísticas Visuales</CardTitle>
+            <CardDescription>Distribución por estado, tipo de plantilla y color</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ReportsDashboard />
           </CardContent>
         </Card>
       </div>

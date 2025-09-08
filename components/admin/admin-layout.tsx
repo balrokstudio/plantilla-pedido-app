@@ -16,6 +16,7 @@ const navigation = [
   { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { name: "Pedidos", href: "/admin/orders", icon: ShoppingCart },
   { name: "Opciones de Producto", href: "/admin/product-options", icon: Package },
+  { name: "Colores por Producto", href: "/admin/products-colors", icon: Package },
   { name: "Reportes", href: "/admin/reports", icon: BarChart3 },
   { name: "Formulario", href: "/admin/form-config", icon: Settings },
   { name: "Configuración", href: "/admin/settings", icon: Settings },

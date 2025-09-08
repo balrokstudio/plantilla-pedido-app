@@ -5,9 +5,6 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
 
 interface OrderDetailProps {
@@ -17,7 +14,6 @@ interface OrderDetailProps {
 export default function OrderDetail({ id }: OrderDetailProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
   const [order, setOrder] = useState<any | null>(null)
   const [status, setStatus] = useState<string>("pending")
   const [notes, setNotes] = useState<string>("")
@@ -40,22 +36,7 @@ export default function OrderDetail({ id }: OrderDetailProps) {
     load()
   }, [id])
 
-  const save = async () => {
-    setSaving(true)
-    try {
-      const res = await fetch(`/api/admin/orders/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, notes }),
-      })
-      if (!res.ok) throw new Error("No se pudo actualizar el pedido")
-      router.refresh()
-    } catch (e) {
-      console.error(e)
-    } finally {
-      setSaving(false)
-    }
-  }
+  // Modo solo-lectura: sin guardado ni edición
 
   if (loading) {
     return (
@@ -85,63 +66,44 @@ export default function OrderDetail({ id }: OrderDetailProps) {
           <CardTitle>Pedido de {order.name} {order.lastname}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Estado:</span>
-            <Badge>{status}</Badge>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm text-gray-600">Actualizar estado</label>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">Pendiente</SelectItem>
-                  <SelectItem value="processing">Procesando</SelectItem>
-                  <SelectItem value="completed">Completado</SelectItem>
-                  <SelectItem value="cancelled">Cancelado</SelectItem>
-                </SelectContent>
-              </Select>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-1">
+              <div className="text-xs text-gray-500">Estado</div>
+              <Badge>{status}</Badge>
             </div>
-
-            <div>
-              <label className="text-sm text-gray-600">Email</label>
-              <Input value={order.email} readOnly className="mt-1" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm text-gray-600">Nombre</label>
-              <Input value={`${order.name}`} readOnly className="mt-1" />
-            </div>
-            <div>
-              <label className="text-sm text-gray-600">Apellido</label>
-              <Input value={`${order.lastname}`} readOnly className="mt-1" />
+            <div className="space-y-1">
+              <div className="text-xs text-gray-500">Email</div>
+              <div className="text-sm font-medium">{order.email}</div>
             </div>
             {order.phone && (
-              <div>
-                <label className="text-sm text-gray-600">Teléfono</label>
-                <Input value={`${order.phone}`} readOnly className="mt-1" />
+              <div className="space-y-1">
+                <div className="text-xs text-gray-500">Teléfono</div>
+                <div className="text-sm font-medium">{order.phone}</div>
               </div>
             )}
           </div>
 
-          <div>
-            <label className="text-sm text-gray-600">Notas</label>
-            <Textarea
-              value={notes}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
-              className="mt-1"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <div className="text-xs text-gray-500">Nombre</div>
+              <div className="text-sm font-medium">{order.name}</div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-xs text-gray-500">Apellido</div>
+              <div className="text-sm font-medium">{order.lastname}</div>
+            </div>
           </div>
 
+          {notes && (
+            <div className="space-y-1">
+              <div className="text-xs text-gray-500">Notas</div>
+              <div className="text-sm whitespace-pre-wrap">{notes}</div>
+            </div>
+          )}
+
           <Separator />
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end">
             <Button variant="outline" onClick={() => router.push("/admin/orders")}>Volver</Button>
-            <Button onClick={save} disabled={saving}>{saving ? "Guardando..." : "Guardar cambios"}</Button>
           </div>
         </CardContent>
       </Card>
@@ -157,16 +119,27 @@ export default function OrderDetail({ id }: OrderDetailProps) {
                 <div key={p.id} className="p-4 border rounded-md">
                   <div className="font-medium">{p.product_type}</div>
                   <div className="text-sm text-gray-600">Creado: {new Date(p.created_at).toLocaleString()}</div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2 text-sm">
-                    {Object.entries(p).map(([k, v]) => {
-                      if (["id", "customer_request_id", "product_type", "created_at"].includes(k)) return null
-                      return (
-                        <div key={k} className="flex justify-between gap-2">
-                          <span className="text-gray-500">{k}</span>
-                          <span className="font-medium">{String(v)}</span>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3 text-sm">
+                    {[
+                      ["Nombre Paciente", p.patient_name],
+                      ["Apellido Paciente", p.patient_lastname],
+                      ["Color", p.template_color],
+                      ["Talle", p.template_size],
+                      ["Antepié - Zona metatarsal", p.forefoot_metatarsal],
+                      ["Cuña Anterior", p.anterior_wedge],
+                      ["Mediopié - Zona arco", p.midfoot_arch],
+                      ["Cuña Mediopié Externa", p.midfoot_external_wedge],
+                      ["Retropié - Zona calcáneo", p.rearfoot_calcaneus],
+                      ["Realce en talón (mm)", p.heel_raise_mm],
+                      ["Cuña Posterior", p.posterior_wedge],
+                    ].map(([label, value]) => (
+                      value ? (
+                        <div key={String(label)} className="flex justify-between gap-2">
+                          <span className="text-gray-500">{String(label)}</span>
+                          <span className="font-medium">{String(value)}</span>
                         </div>
-                      )
-                    })}
+                      ) : null
+                    ))}
                   </div>
                 </div>
               ))}

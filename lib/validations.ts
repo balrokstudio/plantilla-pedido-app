@@ -8,8 +8,8 @@ export const productFormSchema = z.object({
   // Fila 2: Selección principal
   product_type: z.string().min(1, "Debe seleccionar un tipo de producto"),
   template_size: z.string().min(1, "Debe seleccionar un talle"),
-  // Color es condicional según producto; lo validamos opcional aquí y forzamos en la UI si corresponde
-  template_color: z.string().optional().default(""),
+  // Color: ahora requerido porque todos los tipos tienen colores por defecto (editable en Admin)
+  template_color: z.string().min(1, "Debe seleccionar un color"),
 
   // Configuraciones específicas por zona
   forefoot_metatarsal: z.string().optional().default(""),
