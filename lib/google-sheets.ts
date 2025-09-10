@@ -161,7 +161,7 @@ class GoogleSheetsService {
       const headers =
         layout === "rows"
           ? [
-              // Una fila por pedido, con dos sets de producto (1 y 2)
+              // Una fila por pedido (metadatos) y un set de producto; productos extra se apilan en filas siguientes
               "Timestamp",
               "Orden ID",
               "Estado",
@@ -169,7 +169,7 @@ class GoogleSheetsService {
               "Apellido",
               "Email",
               "Teléfono",
-              // Producto 1
+              // Producto (columna H en adelante)
               "Producto 1 - Tipo",
               "Producto 1 - Color",
               "Producto 1 - Talle",
@@ -180,22 +180,11 @@ class GoogleSheetsService {
               "Producto 1 - Retropié (Calcáneo)",
               "Producto 1 - Realce Talón (mm)",
               "Producto 1 - Cuña Posterior",
-              // Producto 2
-              "Producto 2 - Tipo",
-              "Producto 2 - Color",
-              "Producto 2 - Talle",
-              "Producto 2 - Antepié (Metatarsal)",
-              "Producto 2 - Cuña Anterior",
-              "Producto 2 - Mediopié (Arco)",
-              "Producto 2 - Cuña Mediopié Externa",
-              "Producto 2 - Retropié (Calcáneo)",
-              "Producto 2 - Realce Talón (mm)",
-              "Producto 2 - Cuña Posterior",
-              // Notas al final
+              // Notas al final (solo en la primera fila del pedido)
               "Observaciones",
             ]
           : [
-              // Layout horizontal: misma estructura en una fila
+              // Layout horizontal: misma estructura en una fila, un solo set de producto
               "Timestamp",
               "Orden ID",
               "Estado",
@@ -213,16 +202,6 @@ class GoogleSheetsService {
               "Producto 1 - Retropié (Calcáneo)",
               "Producto 1 - Realce Talón (mm)",
               "Producto 1 - Cuña Posterior",
-              "Producto 2 - Tipo",
-              "Producto 2 - Color",
-              "Producto 2 - Talle",
-              "Producto 2 - Antepié (Metatarsal)",
-              "Producto 2 - Cuña Anterior",
-              "Producto 2 - Mediopié (Arco)",
-              "Producto 2 - Cuña Mediopié Externa",
-              "Producto 2 - Retropié (Calcáneo)",
-              "Producto 2 - Realce Talón (mm)",
-              "Producto 2 - Cuña Posterior",
               "Observaciones",
             ]
 
@@ -303,46 +282,56 @@ class GoogleSheetsService {
     }
   }
 
-  private formatOrderData(orderData: OrderSheetData): any[] {
-    // Formato de datos para Google Sheets (alineado con headers)
-    const p1 = orderData.products[0] || {}
-    const p2 = orderData.products[1] || {}
+  private buildOrderRows(orderData: OrderSheetData): any[][] {
+    // Genera múltiples filas para un pedido: la primera con metadatos + primer producto,
+    // filas siguientes solo con datos de producto desde la columna H.
     const firstName = orderData.firstName || orderData.customerName?.split(' ')[0] || ''
     const lastName = orderData.lastName || orderData.customerName?.split(' ').slice(1).join(' ') || ''
 
-    return [
-      new Date().toISOString(), // Timestamp
-      orderData.orderId || '',
-      orderData.status || 'pendiente',
-      firstName,
-      lastName,
-      orderData.customerEmail || '',
-      orderData.customerPhone || '',
-      // Producto 1
-      p1.productType || '',
-      p1.templateColor || '',
-      p1.templateSize || '',
-      p1.forefootMetatarsal || '',
-      p1.anteriorWedge || '',
-      p1.midfootArch || '',
-      p1.midfootExternalWedge || '',
-      p1.rearfootCalcaneus || '',
-      p1.heelRaiseMm || '',
-      p1.posteriorWedge || '',
-      // Producto 2
-      p2.productType || '',
-      p2.templateColor || '',
-      p2.templateSize || '',
-      p2.forefootMetatarsal || '',
-      p2.anteriorWedge || '',
-      p2.midfootArch || '',
-      p2.midfootExternalWedge || '',
-      p2.rearfootCalcaneus || '',
-      p2.heelRaiseMm || '',
-      p2.posteriorWedge || '',
-      // Notas
-      orderData.notes || ''
-    ]
+    const products = orderData.products && orderData.products.length > 0 ? orderData.products : [{} as any]
+
+    const rows: any[][] = []
+
+    products.forEach((p, idx) => {
+      const baseCols = idx === 0
+        ? [
+            new Date().toISOString(), // Timestamp
+            orderData.orderId || '',
+            orderData.status || 'pendiente',
+            firstName,
+            lastName,
+            orderData.customerEmail || '',
+            orderData.customerPhone || '',
+          ]
+        : [
+            '', // Timestamp vacío para filas de productos adicionales
+            '', // Orden ID
+            '', // Estado
+            '', // Nombre
+            '', // Apellido
+            '', // Email
+            '', // Teléfono
+          ]
+
+      const productCols = [
+        p.productType || '',
+        p.templateColor || '',
+        p.templateSize || '',
+        p.forefootMetatarsal || '',
+        p.anteriorWedge || '',
+        p.midfootArch || '',
+        p.midfootExternalWedge || '',
+        p.rearfootCalcaneus || '',
+        p.heelRaiseMm || '',
+        p.posteriorWedge || '',
+      ]
+
+      const noteCol = idx === 0 ? [orderData.notes || ''] : ['']
+
+      rows.push([...baseCols, ...productCols, ...noteCol])
+    })
+
+    return rows
   }
 
   async addOrderToSheet(orderData: OrderSheetData): Promise<{
@@ -370,20 +359,20 @@ class GoogleSheetsService {
       console.log(' Verificando encabezados...');
       await this.addHeaders(sheetName);
 
-      // 3. Formatear los datos
+      // 3. Formatear los datos (múltiples filas por pedido si hay varios productos)
       console.log(' Formateando datos de la orden...');
-      const rowData = this.formatOrderData(orderData);
-      console.log(' Datos formateados para la hoja:', rowData);
+      const rows = this.buildOrderRows(orderData);
+      console.log(' Filas formateadas para la hoja:', rows);
 
       // 4. Preparar la solicitud
       const request = {
         spreadsheetId: process.env.GOOGLE_SHEETS_SPREADSHEET_ID,
-        range: `${sheetName}!A:Z`,
+        range: `${sheetName}!A:AZ`,
         valueInputOption: 'USER_ENTERED',
         insertDataOption: 'INSERT_ROWS',
         includeValuesInResponse: true,
         requestBody: {
-          values: [rowData],
+          values: rows,
         },
       };
 
@@ -463,16 +452,16 @@ class GoogleSheetsService {
       // Encabezados para la hoja de exportación
       await this.addHeaders(sheetName)
 
-      // Preparar datos según el mismo formato de headers
-      const allData = orders.map((order) => this.formatOrderData(order))
+      // Preparar datos: múltiples filas por pedido
+      const allRows = orders.flatMap((order) => this.buildOrderRows(order))
 
-      // Write all data at once
+      // Escribir todas las filas de una vez
       await this.sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: `${sheetName}!A2:AZ${allData.length + 1}`,
+        range: `${sheetName}!A2:AZ${allRows.length + 1}`,
         valueInputOption: "RAW",
         requestBody: {
-          values: allData,
+          values: allRows,
         },
       })
 

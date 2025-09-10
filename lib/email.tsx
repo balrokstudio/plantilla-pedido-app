@@ -204,7 +204,13 @@ function generateCustomerEmailTemplate(data: OrderEmailData): string {
         
         <div class="footer">
           <p>Este es un email automático, por favor no responda a este mensaje.</p>
-          <p>© 2024 Plantillas Ortopédicas. Todos los derechos reservados.</p>
+          <a href="https://www.underfeet.com.ar" target="_blank" style="display:block; margin-bottom:8px;">
+            © 2025 Underfeet.com.ar - Todos los derechos reservados.
+          </a>
+          <div style="text-align:center; margin-top:4px;">
+            <img src="/Logo-Under-Feet-green-.png" alt="Underfeet Logo" style="width:48px; height:auto; opacity:0.85;" />
+          </div>
+          
         </div>
       </div>
     </body>
@@ -251,9 +257,7 @@ function generateAdminEmailTemplate(data: OrderEmailData): string {
         </div>
         
         <div class="content">
-          <div class="alert">
-            <strong>⚠️ Acción requerida:</strong> Se ha recibido un nuevo pedido que requiere revisión y seguimiento.
-          </div>
+           
           
           <div class="customer-info">
             <h3>Información del Cliente</h3>
@@ -307,7 +311,10 @@ function generateAdminEmailTemplate(data: OrderEmailData): string {
         
         <div class="footer">
           <p>Sistema de Gestión de Pedidos - Plantillas Ortopédicas</p>
-          <p>© 2024 Todos los derechos reservados.</p>
+          <a href="https://www.underfeet.com.ar" target="_blank">© 2025 Underfeet.com.ar - Todos los derechos reservados.</a>
+          <div style="text-align:center; margin-top:4px;">
+            <img src="/Logo-Under-Feet-green-.png" alt="Underfeet Logo" style="width:48px; height:auto; opacity:0.85;" />
+          </div>
         </div>
       </div>
     </body>

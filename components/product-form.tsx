@@ -148,7 +148,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
           name={`products.${index}.product_type`}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
+              <FormLabel className="mb-1 min-h-[24px] flex items-center">
                 <div className="flex items-center gap-2">
                   <span>Tipo Plantilla *</span>
                   <a
@@ -188,7 +188,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
             name={`products.${index}.template_size` as any}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{config.productLabels?.template_size || "Selección de talle"}</FormLabel>
+                <FormLabel className="mb-1 min-h-[24px] flex items-center">{config.productLabels?.template_size || "Selección de talle"}</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
@@ -221,7 +221,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
               const show = Array.isArray(colors) && colors.length > 0
               return (
                 <FormItem>
-                  <FormLabel>{config.productLabels?.template_color || "Color"}</FormLabel>
+                  <FormLabel className="mb-1 min-h-[24px] flex items-center">{config.productLabels?.template_color || "Color"}</FormLabel>
                   {show ? (
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
