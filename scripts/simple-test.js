@@ -5,12 +5,11 @@ require('dotenv').config();
 async function testConnection() {
   console.log('🔍 Iniciando prueba de conexión a Google Sheets...');
   
-  const auth = new google.auth.JWT(
-    process.env.GOOGLE_SHEETS_CLIENT_EMAIL,
-    null,
-    process.env.GOOGLE_SHEETS_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    ['https://www.googleapis.com/auth/spreadsheets']
-  );
+  const auth = new google.auth.JWT({
+    email: process.env.GOOGLE_SHEETS_CLIENT_EMAIL,
+    key: process.env.GOOGLE_SHEETS_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+  });
 
   const sheets = google.sheets({ version: 'v4', auth });
 
@@ -28,11 +27,18 @@ async function testConnection() {
     });
 
     console.log('\n📊 Información del documento:');
-    console.log(`Título: ${response.data.properties.title}`);
+    const title = response?.data?.properties?.title ?? '(sin título)';
+    console.log(`Título: ${title}`);
     console.log('Hojas disponibles:');
-    response.data.sheets.forEach((sheet, i) => {
-      console.log(`  ${i + 1}. ${sheet.properties.title}`);
-    });
+    const sheetList = response?.data?.sheets;
+    if (Array.isArray(sheetList)) {
+      sheetList.forEach((sheet, i) => {
+        const sheetTitle = sheet?.properties?.title ?? '(sin nombre)';
+        console.log(`  ${i + 1}. ${sheetTitle}`);
+      });
+    } else {
+      console.log('  (ninguna hoja encontrada)');
+    }
 
     console.log('\n✅ Prueba completada con éxito');
   } catch (error) {

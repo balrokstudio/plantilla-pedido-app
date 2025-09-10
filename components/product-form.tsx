@@ -1,17 +1,13 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import type { UseFormReturn } from "react-hook-form"
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Button } from "@/components/ui/button"
-import { ExternalLink, HelpCircle } from "lucide-react"
-import type { ProductOption } from "@/lib/types"
+import { HelpCircle } from "lucide-react"
 import type { OrderFormData } from "@/lib/validations"
-import { createClient } from "@/lib/supabase/client"
 import { Input } from "@/components/ui/input"
 import { useFormConfig } from "@/hooks/use-form-config"
-import { Label } from "@/components/ui/label"
 
 interface ProductFormProps {
   form: UseFormReturn<OrderFormData>
@@ -19,7 +15,6 @@ interface ProductFormProps {
 }
 
 export function ProductForm({ form, index }: ProductFormProps) {
-  const [productOptions, setProductOptions] = useState<Record<string, ProductOption[]>>({})
   const [loading, setLoading] = useState(true)
   const [productsColors, setProductsColors] = useState<Record<string, string[]>>({})
   const { config } = useFormConfig()
@@ -100,10 +95,6 @@ export function ProductForm({ form, index }: ProductFormProps) {
     init()
   }, [])
 
-  const openZonesHelp = () => {
-    window.open("/zones-help", "_blank")
-  }
-
   const rearfootValue = form.watch(`products.${index}.rearfoot_calcaneus` as const)
 
   if (loading) {
@@ -157,7 +148,20 @@ export function ProductForm({ form, index }: ProductFormProps) {
           name={`products.${index}.product_type`}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Tipo Plantilla *</FormLabel>
+              <FormLabel>
+                <div className="flex items-center gap-2">
+                  <span>Tipo Plantilla *</span>
+                  <a
+                    href="https://drive.google.com/file/d/1AAmSwqDUS102aXO32qNgTPaEDtwhdMZi/view"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center text-blue-600 hover:text-blue-700"
+                    title="Ver Zonas del Pie"
+                  >
+                    <HelpCircle className="h-4 w-4"  /> <span className="ml-1"> Zonas del Pie</span>
+                  </a>
+                </div>
+              </FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -244,6 +248,9 @@ export function ProductForm({ form, index }: ProductFormProps) {
         )}
       </div>
 
+      {/* Separador  antes de Antepié */}
+      <div className="md:col-span-2 h-px bg-gray-100 dark:bg-gray-700 my-2" />
+
       {/* Antepié - Zona metatarsal */}
       {config.productFields.forefoot_metatarsal !== false && (
         <FormField
@@ -300,21 +307,10 @@ export function ProductForm({ form, index }: ProductFormProps) {
         />
       )}
 
-      {/* Mediopié - Zona arco con botón de ayuda */}
+      {/* Mediopié - Zona arco */}
       <div className="md:col-span-2">
-        <div className="flex items-center gap-2 mb-4">
+        <div className="mb-4">
           <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300">Mediopié - Zona arco</h5>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={openZonesHelp}
-            className="text-blue-600 hover:text-blue-700 p-1 h-auto"
-          >
-            <HelpCircle className="h-4 w-4 mr-1" />
-            Ver Zonas del Pie
-            <ExternalLink className="h-3 w-3 ml-1" />
-          </Button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {config.productFields.midfoot_arch !== false && (
