@@ -5,6 +5,10 @@ const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email"
 const BREVO_API_KEY = process.env.BREVO_API_KEY
 const EMAIL_FROM = process.env.EMAIL_FROM || "noreply@example.com"
 const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || "Sistema"
+// Public URL of the logo to use for inline image embedding
+const LOGO_PUBLIC_URL =
+  process.env.NEXT_PUBLIC_LOGO_URL ||
+  "https://pedido-producto-icyembant-balrok-studios-projects.vercel.app/Logo-Under-Feet-green-.png"
 
 export interface OrderEmailData {
   customerName: string
@@ -24,6 +28,8 @@ export async function sendCustomerConfirmationEmail(data: OrderEmailData) {
   try {
     if (!BREVO_API_KEY) throw new Error("BREVO_API_KEY no configurado")
 
+    const logoBase64 = await fetchAsBase64(LOGO_PUBLIC_URL)
+
     const response = await fetch(BREVO_API_URL, {
       method: "POST",
       headers: {
@@ -36,6 +42,7 @@ export async function sendCustomerConfirmationEmail(data: OrderEmailData) {
         to: [{ email: data.customerEmail }],
         subject: `Confirmación de pedido #${data.orderNumber}`,
         htmlContent: generateCustomerEmailTemplate(data),
+        ...(logoBase64 ? { inlineImage: { "logo.png": logoBase64 } } : {}),
       }),
     })
 
@@ -58,6 +65,8 @@ export async function sendAdminNotificationEmail(data: OrderEmailData) {
     if (!BREVO_API_KEY) throw new Error("BREVO_API_KEY no configurado")
     const adminEmail = process.env.ADMIN_EMAIL || "admin@example.com"
 
+    const logoBase64 = await fetchAsBase64(LOGO_PUBLIC_URL)
+
     const response = await fetch(BREVO_API_URL, {
       method: "POST",
       headers: {
@@ -70,6 +79,7 @@ export async function sendAdminNotificationEmail(data: OrderEmailData) {
         to: [{ email: adminEmail }],
         subject: `Nuevo pedido recibido #${data.orderNumber}`,
         htmlContent: generateAdminEmailTemplate(data),
+        ...(logoBase64 ? { inlineImage: { "logo.png": logoBase64 } } : {}),
       }),
     })
 
@@ -204,11 +214,10 @@ function generateCustomerEmailTemplate(data: OrderEmailData): string {
         
         <div class="footer">
           <p>Este es un email automático, por favor no responda a este mensaje.</p>
-          <a href="https://www.underfeet.com.ar" target="_blank" style="display:block; margin-bottom:8px;">
-            © 2025 Underfeet.com.ar - Todos los derechos reservados.
-          </a>
+          © 2025 <a href="https://www.underfeet.com.ar" target="_blank" style="display:inline; margin:0 4px;">Underfeet.com.ar</a> - Todos los derechos reservados.
+          
           <div style="text-align:center; margin-top:4px;">
-            <img src="/Logo-Under-Feet-green-.png" alt="Underfeet Logo" style="width:48px; height:auto; opacity:0.85;" />
+            <img src="cid:logo.png" alt="Underfeet Logo" style="width:48px; height:auto; opacity:0.85;" />
           </div>
           
         </div>
@@ -216,6 +225,19 @@ function generateCustomerEmailTemplate(data: OrderEmailData): string {
     </body>
     </html>
   `
+}
+
+// Helper to fetch a URL and return its Base64-encoded content
+async function fetchAsBase64(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url)
+    if (!res.ok) return null
+    const buf = Buffer.from(await res.arrayBuffer())
+    return buf.toString("base64")
+  } catch (e) {
+    console.error("fetchAsBase64 error:", e)
+    return null
+  }
 }
 
 // Helper to safely parse JSON error payloads from Brevo
@@ -236,17 +258,18 @@ function generateAdminEmailTemplate(data: OrderEmailData): string {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Nuevo Pedido Recibido</title>
       <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f8fafc; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f8fafc; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
         .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-        .header { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; padding: 32px 24px; text-align: center; }
+        .header { background: linear-gradient(135deg, #fbbf24 0%, #fb923c 100%); color: white; padding: 32px 24px; text-align: center; }
         .header h1 { margin: 0; font-size: 28px; font-weight: 700; }
         .content { padding: 32px 24px; }
-        .alert { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin: 16px 0; color: #dc2626; }
+        .alert { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 16px; margin: 16px 0; color: #c2410c; }
         .customer-info { background: #f1f5f9; border-radius: 8px; padding: 20px; margin: 24px 0; }
-        .product-item { border-left: 4px solid #dc2626; padding: 16px; margin: 16px 0; background: #f8fafc; border-radius: 0 8px 8px 0; }
+        .product-item { border-left: 4px solid #f59e0b; padding: 16px; margin: 16px 0; background: #f8fafc; border-radius: 0 8px 8px 0; }
         .footer { background: #f1f5f9; padding: 24px; text-align: center; color: #64748b; font-size: 14px; }
-        .button { display: inline-block; background: #dc2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 16px 0; }
-        .highlight { color: #dc2626; font-weight: 600; }
+        .button { display: inline-block; background: #f59e0b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500; margin: 16px 0; border: 1px solid transparent; }
+        .button:hover { background: #f97316; color: #ffffff !important; }
+        .highlight { color: #f59e0b; font-weight: 600; }
       </style>
     </head>
     <body>
@@ -297,23 +320,16 @@ function generateAdminEmailTemplate(data: OrderEmailData): string {
             )
             .join("")}
           
-          <h3>Acciones Recomendadas</h3>
-          <ol>
-            <li>Revisar la configuración técnica de cada producto</li>
-            <li>Contactar al cliente en las próximas 24 horas</li>
-            <li>Verificar disponibilidad de materiales</li>
-            <li>Programar cita para toma de medidas si es necesario</li>
-            <li>Actualizar el estado del pedido en el sistema</li>
-          </ol>
           
-          <a href="${process.env.NEXT_PUBLIC_APP_URL}/admin/orders" class="button">Ver en Panel de Administración</a>
+          
+          <a href="${process.env.NEXT_PUBLIC_APP_URL}/admin/orders" class="button" style="color:#ffffff !important; font-weight:500; text-decoration:none !important;">Ver en Panel de Administración</a>
         </div>
         
         <div class="footer">
           <p>Sistema de Gestión de Pedidos - Plantillas Ortopédicas</p>
-          <a href="https://www.underfeet.com.ar" target="_blank">© 2025 Underfeet.com.ar - Todos los derechos reservados.</a>
+          © 2025 <a href="https://www.underfeet.com.ar" target="_blank" style="display:inline; margin:0 4px;">Underfeet.com.ar</a> - Todos los derechos reservados.
           <div style="text-align:center; margin-top:4px;">
-            <img src="/Logo-Under-Feet-green-.png" alt="Underfeet Logo" style="width:48px; height:auto; opacity:0.85;" />
+            <img src="cid:logo.png" alt="Underfeet Logo" style="width:48px; height:auto; opacity:0.85;" />
           </div>
         </div>
       </div>
