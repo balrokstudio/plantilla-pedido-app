@@ -5,8 +5,8 @@ const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email"
 const BREVO_API_KEY = process.env.BREVO_API_KEY
 const EMAIL_FROM = process.env.EMAIL_FROM || "noreply@example.com"
 const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || "Sistema"
-// Public URL of the logo to use for inline image embedding
-const LOGO_PUBLIC_URL =
+// Public URL of the logo used in emails (must be HTTPS and publicly accessible)
+const PUBLIC_LOGO_URL =
   process.env.NEXT_PUBLIC_LOGO_URL ||
   "https://pedido-producto-icyembant-balrok-studios-projects.vercel.app/Logo-Under-Feet-green-.png"
 
@@ -28,8 +28,6 @@ export async function sendCustomerConfirmationEmail(data: OrderEmailData) {
   try {
     if (!BREVO_API_KEY) throw new Error("BREVO_API_KEY no configurado")
 
-    const logoBase64 = await fetchAsBase64(LOGO_PUBLIC_URL)
-
     const response = await fetch(BREVO_API_URL, {
       method: "POST",
       headers: {
@@ -42,7 +40,6 @@ export async function sendCustomerConfirmationEmail(data: OrderEmailData) {
         to: [{ email: data.customerEmail }],
         subject: `Confirmación de pedido #${data.orderNumber}`,
         htmlContent: generateCustomerEmailTemplate(data),
-        ...(logoBase64 ? { inlineImage: { "logo.png": logoBase64 } } : {}),
       }),
     })
 
@@ -65,8 +62,6 @@ export async function sendAdminNotificationEmail(data: OrderEmailData) {
     if (!BREVO_API_KEY) throw new Error("BREVO_API_KEY no configurado")
     const adminEmail = process.env.ADMIN_EMAIL || "admin@example.com"
 
-    const logoBase64 = await fetchAsBase64(LOGO_PUBLIC_URL)
-
     const response = await fetch(BREVO_API_URL, {
       method: "POST",
       headers: {
@@ -79,7 +74,6 @@ export async function sendAdminNotificationEmail(data: OrderEmailData) {
         to: [{ email: adminEmail }],
         subject: `Nuevo pedido recibido #${data.orderNumber}`,
         htmlContent: generateAdminEmailTemplate(data),
-        ...(logoBase64 ? { inlineImage: { "logo.png": logoBase64 } } : {}),
       }),
     })
 
@@ -114,7 +108,17 @@ export async function sendTestEmail(toEmail?: string) {
         sender: { email: EMAIL_FROM, name: EMAIL_FROM_NAME },
         to: [{ email: recipient }],
         subject: "Prueba de integraciones - Sistema de Pedidos",
-        htmlContent: `<p>Este es un email de prueba enviado desde el entorno de desarrollo.</p><p>Fecha: ${new Date().toISOString()}</p><p>App: ${appUrl}</p>`,
+        htmlContent: `
+          <div style="font-family:Arial,Helvetica,sans-serif;">
+            <p>Este es un email de prueba enviado desde el entorno de desarrollo.</p>
+            <p>Fecha: ${new Date().toISOString()}</p>
+            <p>App: ${appUrl}</p>
+            <div style="text-align:center; margin-top:8px;">
+              <img src="${PUBLIC_LOGO_URL}" alt="Underfeet Logo" width="48" height="48" style="display:block; margin:0 auto; outline:none; text-decoration:none; border:0; -ms-interpolation-mode:bicubic;" />
+            </div>
+            <p style="font-size:12px; color:#94a3b8; margin-top:8px; text-align:center;">Logo URL: ${PUBLIC_LOGO_URL}</p>
+          </div>
+        `,
       }),
     })
 
@@ -200,14 +204,7 @@ function generateCustomerEmailTemplate(data: OrderEmailData): string {
             )
             .join("")}
           
-          <h3>Próximos Pasos</h3>
-          <p>Nuestro equipo revisará su pedido y se pondrá en contacto con usted en las próximas 24-48 horas para:</p>
-          <ul>
-            <li>Confirmar los detalles técnicos</li>
-            <li>Coordinar la toma de medidas si es necesario</li>
-            <li>Informar sobre tiempos de entrega</li>
-            <li>Proporcionar información sobre el proceso de pago</li>
-          </ul>
+          <p>Nuestro equipo revisará su pedido y se pondrá en contacto con usted en las próximas 24-48 horas.</p>
           
           <p>Si tiene alguna pregunta o necesita realizar cambios en su pedido, no dude en contactarnos.</p>
         </div>
@@ -217,27 +214,15 @@ function generateCustomerEmailTemplate(data: OrderEmailData): string {
           © 2025 <a href="https://www.underfeet.com.ar" target="_blank" style="display:inline; margin:0 4px;">Underfeet.com.ar</a> - Todos los derechos reservados.
           
           <div style="text-align:center; margin-top:4px;">
-            <img src="cid:logo.png" alt="Underfeet Logo" style="width:48px; height:auto; opacity:0.85;" />
+            <img src="${PUBLIC_LOGO_URL}" alt="Underfeet Logo" width="48" height="48" style="display:block; outline:none; text-decoration:none; border:0; -ms-interpolation-mode:bicubic;" />
           </div>
+          <p style="font-size:12px; color:#94a3b8; margin-top:8px;">Logo URL: ${PUBLIC_LOGO_URL}</p>
           
         </div>
       </div>
     </body>
     </html>
   `
-}
-
-// Helper to fetch a URL and return its Base64-encoded content
-async function fetchAsBase64(url: string): Promise<string | null> {
-  try {
-    const res = await fetch(url)
-    if (!res.ok) return null
-    const buf = Buffer.from(await res.arrayBuffer())
-    return buf.toString("base64")
-  } catch (e) {
-    console.error("fetchAsBase64 error:", e)
-    return null
-  }
 }
 
 // Helper to safely parse JSON error payloads from Brevo
@@ -320,7 +305,14 @@ function generateAdminEmailTemplate(data: OrderEmailData): string {
             )
             .join("")}
           
-          
+          <h3>Acciones Recomendadas</h3>
+          <ol>
+            <li>Revisar la configuración técnica de cada producto</li>
+            <li>Contactar al cliente en las próximas 24 horas</li>
+            <li>Verificar disponibilidad de materiales</li>
+            <li>Programar cita para toma de medidas si es necesario</li>
+            <li>Actualizar el estado del pedido en el sistema</li>
+          </ol>
           
           <a href="${process.env.NEXT_PUBLIC_APP_URL}/admin/orders" class="button" style="color:#ffffff !important; font-weight:500; text-decoration:none !important;">Ver en Panel de Administración</a>
         </div>
@@ -329,8 +321,9 @@ function generateAdminEmailTemplate(data: OrderEmailData): string {
           <p>Sistema de Gestión de Pedidos - Plantillas Ortopédicas</p>
           © 2025 <a href="https://www.underfeet.com.ar" target="_blank" style="display:inline; margin:0 4px;">Underfeet.com.ar</a> - Todos los derechos reservados.
           <div style="text-align:center; margin-top:4px;">
-            <img src="cid:logo.png" alt="Underfeet Logo" style="width:48px; height:auto; opacity:0.85;" />
+            <img src="${PUBLIC_LOGO_URL}" alt="Underfeet Logo" width="48" height="48" style="display:block; outline:none; text-decoration:none; border:0; -ms-interpolation-mode:bicubic;" />
           </div>
+          <p style="font-size:12px; color:#94a3b8; margin-top:8px;">Logo URL: ${PUBLIC_LOGO_URL}</p>
         </div>
       </div>
     </body>
