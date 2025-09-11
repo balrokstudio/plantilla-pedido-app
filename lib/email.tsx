@@ -216,7 +216,6 @@ function generateCustomerEmailTemplate(data: OrderEmailData): string {
           <div style="text-align:center; margin-top:4px;">
             <img src="${PUBLIC_LOGO_URL}" alt="Underfeet Logo" width="48" height="48" style="display:block; outline:none; text-decoration:none; border:0; -ms-interpolation-mode:bicubic;" />
           </div>
-          <p style="font-size:12px; color:#94a3b8; margin-top:8px;">Logo URL: ${PUBLIC_LOGO_URL}</p>
           
         </div>
       </div>
@@ -323,7 +322,6 @@ function generateAdminEmailTemplate(data: OrderEmailData): string {
           <div style="text-align:center; margin-top:4px;">
             <img src="${PUBLIC_LOGO_URL}" alt="Underfeet Logo" width="48" height="48" style="display:block; outline:none; text-decoration:none; border:0; -ms-interpolation-mode:bicubic;" />
           </div>
-          <p style="font-size:12px; color:#94a3b8; margin-top:8px;">Logo URL: ${PUBLIC_LOGO_URL}</p>
         </div>
       </div>
     </body>
