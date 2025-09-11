@@ -212,10 +212,7 @@ function generateCustomerEmailTemplate(data: OrderEmailData): string {
         <div class="footer">
           <p>Este es un email automático, por favor no responda a este mensaje.</p>
           © 2025 <a href="https://www.underfeet.com.ar" target="_blank" style="display:inline; margin:0 4px;">Underfeet.com.ar</a> - Todos los derechos reservados.
-          
-          <div style="text-align:center; margin-top:4px;">
-            <img src="${PUBLIC_LOGO_URL}" alt="Underfeet Logo" width="48" height="48" style="display:block; outline:none; text-decoration:none; border:0; -ms-interpolation-mode:bicubic;" />
-          </div>
+           
           
         </div>
       </div>
@@ -319,9 +316,7 @@ function generateAdminEmailTemplate(data: OrderEmailData): string {
         <div class="footer">
           <p>Sistema de Gestión de Pedidos - Plantillas Ortopédicas</p>
           © 2025 <a href="https://www.underfeet.com.ar" target="_blank" style="display:inline; margin:0 4px;">Underfeet.com.ar</a> - Todos los derechos reservados.
-          <div style="text-align:center; margin-top:4px;">
-            <img src="${PUBLIC_LOGO_URL}" alt="Underfeet Logo" width="48" height="48" style="display:block; outline:none; text-decoration:none; border:0; -ms-interpolation-mode:bicubic;" />
-          </div>
+          
         </div>
       </div>
     </body>
