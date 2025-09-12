@@ -26,8 +26,19 @@ function ProductImageSlider({ images, alt }: { images: string[]; alt: string }) 
   }, [images])
 
   // Reinicia el fade en cada cambio de imagen o set de imágenes
+  // Usamos doble requestAnimationFrame para asegurar un ciclo de render antes de activar el fade,
+  // incluso cuando la imagen viene de caché y carga de inmediato.
   useEffect(() => {
     setFade(false)
+    let raf1 = 0
+    let raf2 = 0
+    raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setFade(true))
+    })
+    return () => {
+      if (raf1) cancelAnimationFrame(raf1)
+      if (raf2) cancelAnimationFrame(raf2)
+    }
   }, [index, images])
 
   const commitSwipe = () => {
@@ -93,6 +104,7 @@ function ProductImageSlider({ images, alt }: { images: string[]; alt: string }) 
       aria-label="Imágenes del producto"
     >
       <Image
+        key={safeImages[index]}
         src={safeImages[index]}
         alt={alt}
         fill
@@ -100,7 +112,6 @@ function ProductImageSlider({ images, alt }: { images: string[]; alt: string }) 
         className={`object-contain select-none transition-opacity duration-500 ease-in-out ${fade ? "opacity-100" : "opacity-0"}`}
         sizes="(max-width: 768px) 100vw, 50vw"
         priority={false}
-        onLoadingComplete={() => setFade(true)}
       />
       {/* Puntos (indicadores y control) */}
       <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
