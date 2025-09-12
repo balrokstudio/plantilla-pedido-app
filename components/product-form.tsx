@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import type { UseFormReturn } from "react-hook-form"
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -14,32 +14,46 @@ import { useFormConfig } from "@/hooks/use-form-config"
 function ProductImageSlider({ images, alt }: { images: string[]; alt: string }) {
   const [index, setIndex] = useState(0)
   const [dragging, setDragging] = useState(false)
-  const [fade, setFade] = useState(false)
+  // Cross-fade
+  const [currSrc, setCurrSrc] = useState<string | null>(null)
+  const [prevSrc, setPrevSrc] = useState<string | null>(null)
+  const [fadeOn, setFadeOn] = useState(false)
   const startXRef = useRef<number | null>(null)
   const currentXRef = useRef<number>(0)
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const safeImages = images && images.length > 0 ? images : ["/Logo-Under-Feet-green-.png", "/Logo-Under-Feet-green-.png"]
+  const safeList = useMemo(() => (images && images.length > 0 ? images : ["/Logo-Under-Feet-green-.png", "/Logo-Under-Feet-green-.png"]), [images])
 
   // Reinicia al primer slide cuando cambian las imágenes (p. ej., al cambiar de tipo de plantilla)
   useEffect(() => {
     setIndex(0)
   }, [images])
 
-  // Reinicia el fade en cada cambio de imagen o set de imágenes
-  // Usamos doble requestAnimationFrame para asegurar un ciclo de render antes de activar el fade,
-  // incluso cuando la imagen viene de caché y carga de inmediato.
+  // Inicializa la imagen actual cuando cambia el set de imágenes para evitar flashes
   useEffect(() => {
-    setFade(false)
-    let raf1 = 0
-    let raf2 = 0
+    const first = safeList[0]
+    setPrevSrc(null)
+    setCurrSrc(first)
+    setFadeOn(false)
+    const raf = requestAnimationFrame(() => setFadeOn(true))
+    return () => cancelAnimationFrame(raf)
+  }, [safeList])
+
+  // Configura las capas prev/curr y dispara el cross-fade en cada cambio
+  useEffect(() => {
+    const next = safeList[Math.min(index, safeList.length - 1)]
+    setPrevSrc((prev) => (currSrc ?? prev))
+    setCurrSrc(next)
+    // Reinicia y activa el fade en el próximo frame
+    setFadeOn(false)
+    let raf1 = 0, raf2 = 0
     raf1 = requestAnimationFrame(() => {
-      raf2 = requestAnimationFrame(() => setFade(true))
+      raf2 = requestAnimationFrame(() => setFadeOn(true))
     })
     return () => {
       if (raf1) cancelAnimationFrame(raf1)
       if (raf2) cancelAnimationFrame(raf2)
     }
-  }, [index, images])
+  }, [index, safeList])
 
   const commitSwipe = () => {
     const startX = startXRef.current
@@ -49,10 +63,10 @@ function ProductImageSlider({ images, alt }: { images: string[]; alt: string }) 
     const threshold = Math.max(40, width * 0.15) // 15% del ancho o 40px
     if (delta > threshold) {
       // swipe derecha -> imagen anterior
-      setIndex((i) => (i - 1 + safeImages.length) % safeImages.length)
+      setIndex((i) => (i - 1 + safeList.length) % safeList.length)
     } else if (delta < -threshold) {
       // swipe izquierda -> siguiente imagen
-      setIndex((i) => (i + 1) % safeImages.length)
+      setIndex((i) => (i + 1) % safeList.length)
     }
     startXRef.current = null
     currentXRef.current = 0
@@ -103,19 +117,35 @@ function ProductImageSlider({ images, alt }: { images: string[]; alt: string }) 
       aria-roledescription="carousel"
       aria-label="Imágenes del producto"
     >
-      <Image
-        key={safeImages[index]}
-        src={safeImages[index]}
-        alt={alt}
-        fill
-        draggable={false}
-        className={`object-contain select-none transition-opacity duration-500 ease-in-out ${fade ? "opacity-100" : "opacity-0"}`}
-        sizes="(max-width: 768px) 100vw, 50vw"
-        priority={false}
-      />
+      {/* Capa inferior: imagen previa */}
+      {prevSrc && (
+        <Image
+          key={`prev-${prevSrc}`}
+          src={prevSrc}
+          alt={alt}
+          fill
+          draggable={false}
+          className={`object-contain select-none transition-opacity duration-500 ease-in-out ${fadeOn ? "opacity-0" : "opacity-100"}`}
+          sizes="(max-width: 768px) 100vw, 50vw"
+          priority={false}
+        />
+      )}
+      {/* Capa superior: imagen actual */}
+      {currSrc && (
+        <Image
+          key={`curr-${currSrc}`}
+          src={currSrc}
+          alt={alt}
+          fill
+          draggable={false}
+          className={`object-contain select-none transition-opacity duration-500 ease-in-out ${fadeOn ? "opacity-100" : "opacity-0"}`}
+          sizes="(max-width: 768px) 100vw, 50vw"
+          priority={false}
+        />
+      )}
       {/* Puntos (indicadores y control) */}
       <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
-        {safeImages.map((_, i) => (
+        {safeList.map((_, i) => (
           <button
             key={i}
             type="button"
