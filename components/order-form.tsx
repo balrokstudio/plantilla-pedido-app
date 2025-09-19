@@ -292,7 +292,7 @@ export function OrderForm() {
             type="submit"
             size="lg"
             disabled={isSubmitting}
-            className="min-w-48 bg-blue-600 hover:bg-blue-700 text-white"
+            className="min-w-48 bg-[#94C361] hover:bg-[#9cce66] text-white"
           >
             {isSubmitting ? (
               <>
