@@ -1,11 +1,12 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import Image from "next/image"
 import type { UseFormReturn } from "react-hook-form"
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { HelpCircle } from "lucide-react"
+import { HelpCircle, Ruler, X } from "lucide-react"
 import type { OrderFormData } from "@/lib/validations"
 import { Input } from "@/components/ui/input"
 import { useFormConfig } from "@/hooks/use-form-config"
@@ -168,6 +169,12 @@ export function ProductForm({ form, index }: ProductFormProps) {
   const [loading, setLoading] = useState(true)
   const [productsColors, setProductsColors] = useState<Record<string, string[]>>({})
   const { config } = useFormConfig()
+  const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const [sizeGuideTab, setSizeGuideTab] = useState<"men" | "women" | "kids">("men")
+  const menRef = useRef<HTMLDivElement | null>(null)
+  const womenRef = useRef<HTMLDivElement | null>(null)
+  const kidsRef = useRef<HTMLDivElement | null>(null)
 
   // Listas fijas solicitadas por el cliente
   const PLANTILLA_TYPES = [
@@ -195,6 +202,36 @@ export function ProductForm({ form, index }: ProductFormProps) {
     "Mi Marca Clásica": ["/Logo-Under-Feet-green-.png", "/Logo-Under-Feet-green-.png"],
     "Mi Marca 3D": ["/Logo-Under-Feet-green-.png", "/Logo-Under-Feet-green-.png"],
     "Sandalia Under Feet": ["/Logo-Under-Feet-green-.png", "/Logo-Under-Feet-green-.png"],
+  }
+
+  // Mapas de imágenes por opción para cada dropdown adicional
+  const FOREFOOT_IMAGE_MAP: Record<string, string[]> = {
+    "Oliva Barra": ["/Logo-Under-Feet-green-.png"],
+    "Pad Running": ["/Logo-Under-Feet-green-.png"],
+    "Pad Medialuna": ["/Logo-Under-Feet-green-.png"],
+    "Valente Valenti": ["/Logo-Under-Feet-green-.png"],
+  }
+
+  const ANTERIOR_WEDGE_IMAGE_MAP: Record<string, string[]> = {
+    "Cuña Anterior Externa": ["/Logo-Under-Feet-green-.png"],
+    "Cuña Anterior Interna": ["/Logo-Under-Feet-green-.png"],
+  }
+
+  const MIDFOOT_ARCH_IMAGE_MAP: Record<string, string[]> = {
+    "Arco Flex": ["/Logo-Under-Feet-green-.png"],
+    "Arco Semiblando": ["/Logo-Under-Feet-green-.png"],
+    "Arco Látex": ["/Logo-Under-Feet-green-.png"],
+  }
+
+  const REARFOOT_IMAGE_MAP: Record<string, string[]> = {
+    "Botón Látex": ["/Logo-Under-Feet-green-.png"],
+    "Talonera Descanso Espolón": ["/Logo-Under-Feet-green-.png"],
+    "Realce en talón": ["/Logo-Under-Feet-green-.png"],
+  }
+
+  const POSTERIOR_WEDGE_IMAGE_MAP: Record<string, string[]> = {
+    "Cuña Posterior Externa": ["/Logo-Under-Feet-green-.png"],
+    "Cuña Posterior Interna": ["/Logo-Under-Feet-green-.png"],
   }
 
   const SIZE_OPTIONS = [
@@ -243,6 +280,65 @@ export function ProductForm({ form, index }: ProductFormProps) {
   ]
   const HEEL_RAISE_MM_OPTIONS = ["3mm", "5mm", "6mm", "8mm", "9mm", "10mm"]
 
+  // Guía de talles (extraída de talles.jpg)
+  const SIZE_GUIDE = {
+    men: [
+      { us: "4", arg: "35,5", cm: "22" },
+      { us: "4,5", arg: "36", cm: "22,5" },
+      { us: "5", arg: "36,5", cm: "23" },
+      { us: "5,5", arg: "37", cm: "23,5" },
+      { us: "6", arg: "37,5", cm: "24" },
+      { us: "6,5", arg: "38", cm: "24,5" },
+      { us: "7", arg: "39", cm: "25" },
+      { us: "7,5", arg: "39,5", cm: "25,5" },
+      { us: "8", arg: "40", cm: "26" },
+      { us: "8,5", arg: "41", cm: "26,5" },
+      { us: "9", arg: "42", cm: "27" },
+      { us: "9,5", arg: "42,5", cm: "27,5" },
+      { us: "10", arg: "43", cm: "28" },
+      { us: "10,5", arg: "43,5", cm: "28,5" },
+      { us: "11", arg: "44", cm: "29" },
+      { us: "11,5", arg: "44,5", cm: "29,5" },
+      { us: "12", arg: "45", cm: "30" },
+      { us: "12,5", arg: "45,5", cm: "30,5" },
+      { us: "13", arg: "47", cm: "31" },
+      { us: "13,5", arg: "48", cm: "31,5" },
+    ],
+    women: [
+      { us: "4,5", arg: "35", cm: "21,5" },
+      { us: "5", arg: "35,5", cm: "22" },
+      { us: "5,5", arg: "36", cm: "22,5" },
+      { us: "6", arg: "36,5", cm: "23" },
+      { us: "6,5", arg: "37,5", cm: "23,5" },
+      { us: "7", arg: "38", cm: "24" },
+      { us: "7,5", arg: "38,5", cm: "24,5" },
+      { us: "8", arg: "39", cm: "25" },
+      { us: "8,5", arg: "39,5", cm: "25,5" },
+      { us: "9", arg: "40", cm: "26" },
+      { us: "9,5", arg: "40,5", cm: "26,5" },
+      { us: "10", arg: "41", cm: "27" },
+    ],
+    kids: [
+      { us: "8,5C", arg: "25", cm: "14,5" },
+      { us: "9C", arg: "25,5", cm: "15" },
+      { us: "9,5C", arg: "26", cm: "15,5" },
+      { us: "10C", arg: "27", cm: "16" },
+      { us: "10,5C", arg: "27,5", cm: "16,5" },
+      { us: "11C", arg: "28", cm: "17" },
+      { us: "11,5C", arg: "28,5", cm: "17,5" },
+      { us: "12C", arg: "29", cm: "18" },
+      { us: "12,5C", arg: "29,5", cm: "18,5" },
+      { us: "13C", arg: "30", cm: "19" },
+      { us: "13,5C", arg: "30,5", cm: "19,5" },
+      { us: "1Y", arg: "31", cm: "20" },
+      { us: "1,5Y", arg: "32", cm: "20,5" },
+      { us: "2Y", arg: "32,5", cm: "21" },
+      { us: "2,5Y", arg: "33", cm: "21,5" },
+      { us: "3Y", arg: "34", cm: "22" },
+      { us: "3,5Y", arg: "34,5", cm: "22,5" },
+    ],
+  } as const
+
   useEffect(() => {
     const init = async () => {
       try {
@@ -258,6 +354,56 @@ export function ProductForm({ form, index }: ProductFormProps) {
     }
     init()
   }, [])
+
+  // Cerrar modal con tecla Escape
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsSizeGuideOpen(false)
+    }
+    if (isSizeGuideOpen) {
+      window.addEventListener("keydown", onKey)
+    }
+    return () => window.removeEventListener("keydown", onKey)
+  }, [isSizeGuideOpen])
+
+  // Mount guard for portals and body scroll lock
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+  useEffect(() => {
+    if (!mounted) return
+    const originalOverflow = document.body.style.overflow
+    if (isSizeGuideOpen) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = originalOverflow || ""
+    }
+    return () => {
+      document.body.style.overflow = originalOverflow || ""
+    }
+  }, [isSizeGuideOpen, mounted])
+
+  // Persistir/recuperar última pestaña (filtro)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("sizeGuideTab") as typeof sizeGuideTab | null
+      if (saved === "men" || saved === "women" || saved === "kids") {
+        setSizeGuideTab(saved)
+      }
+    } catch {}
+  }, [])
+  useEffect(() => {
+    try {
+      localStorage.setItem("sizeGuideTab", sizeGuideTab)
+    } catch {}
+  }, [sizeGuideTab])
+
+  const scrollToSection = (key: typeof sizeGuideTab) => {
+    const target = key === "men" ? menRef.current : key === "women" ? womenRef.current : kidsRef.current
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+  }
 
   const rearfootValue = form.watch(`products.${index}.rearfoot_calcaneus` as const)
 
@@ -366,7 +512,21 @@ export function ProductForm({ form, index }: ProductFormProps) {
               name={`products.${index}.template_size` as any}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="mb-1 min-h-[24px] flex items-center">{config.productLabels?.template_size || "Selección de talle"}</FormLabel>
+                  <FormLabel className="mb-1 min-h-[24px] flex items-center">
+                    <div className="flex items-center gap-2">
+                      <span>{config.productLabels?.template_size || "Selección de talle"}</span>
+                      <button
+                        type="button"
+                        onClick={() => setIsSizeGuideOpen(true)}
+                        title="Ver guía de talles"
+                        aria-haspopup="dialog"
+                        className="inline-flex items-center text-blue-600 hover:text-blue-700"
+                      >
+                        <Ruler className="h-4 w-4" />
+                        <span className="ml-1 text-xs md:text-sm">Ver guía de Talles</span>
+                      </button>
+                    </div>
+                  </FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -444,147 +604,243 @@ export function ProductForm({ form, index }: ProductFormProps) {
 
       {/* Antepié - Zona metatarsal */}
       {config.productFields.forefoot_metatarsal !== false && (
-        <FormField
-          control={form.control}
-          name={`products.${index}.forefoot_metatarsal` as any}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{config.productLabels?.forefoot_metatarsal || "Antepié - Zona metatarsal"}</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {FOREFOOT_OPTIONS.map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {value}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+          <FormField
+            control={form.control}
+            name={`products.${index}.forefoot_metatarsal` as any}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-bold text-gray-500">{config.productLabels?.forefoot_metatarsal || "Antepié - Zona metatarsal"}</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {FOREFOOT_OPTIONS.map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {value}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {/* Slider móvil debajo del campo */}
+                {(() => {
+                  const selected = form.watch(`products.${index}.forefoot_metatarsal` as const) as string
+                  const images = FOREFOOT_IMAGE_MAP[selected] || []
+                  const alt = selected ? `Imagen ${selected}` : "Imagen Antepié"
+                  return (
+                    <div className="block md:hidden mt-2">
+                      <ProductImageSlider images={images} alt={alt} />
+                    </div>
+                  )
+                })()}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          {/* Slider a la derecha en desktop */}
+          {(() => {
+            const selected = form.watch(`products.${index}.forefoot_metatarsal` as const) as string
+            const images = FOREFOOT_IMAGE_MAP[selected] || []
+            const alt = selected ? `Imagen ${selected}` : "Imagen Antepié"
+            return (
+              <div className="hidden md:block">
+                <ProductImageSlider images={images} alt={alt} />
+              </div>
+            )
+          })()}
+        </div>
       )}
 
       {/* Cuña Anterior */}
       {config.productFields.anterior_wedge !== false && (
-        <FormField
-          control={form.control}
-          name={`products.${index}.anterior_wedge` as any}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{config.productLabels?.anterior_wedge || "Cuña Anterior"}</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {ANTERIOR_WEDGE_OPTIONS.map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {value}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-start ">
+          <FormField
+            control={form.control}
+            name={`products.${index}.anterior_wedge` as any}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-bold text-gray-500">{config.productLabels?.anterior_wedge || "Cuña Anterior"}</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {ANTERIOR_WEDGE_OPTIONS.map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {value}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {/* Slider móvil */}
+                {(() => {
+                  const selected = form.watch(`products.${index}.anterior_wedge` as const) as string
+                  const images = ANTERIOR_WEDGE_IMAGE_MAP[selected] || []
+                  const alt = selected ? `Imagen ${selected}` : "Imagen Cuña Anterior"
+                  return (
+                    <div className="block md:hidden mt-2">
+                      <ProductImageSlider images={images} alt={alt} />
+                    </div>
+                  )
+                })()}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          {/* Slider desktop */}
+          {(() => {
+            const selected = form.watch(`products.${index}.anterior_wedge` as const) as string
+            const images = ANTERIOR_WEDGE_IMAGE_MAP[selected] || []
+            const alt = selected ? `Imagen ${selected}` : "Imagen Cuña Anterior"
+            return (
+              <div className="hidden md:block">
+                <ProductImageSlider images={images} alt={alt} />
+              </div>
+            )
+          })()}
+        </div>
       )}
 
       {/* Mediopié - Zona arco */}
-      <div className="md:col-span-2">
-        <div className="mb-4">
-          <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300">Mediopié - Zona arco</h5>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {config.productFields.midfoot_arch !== false && (
-            <FormField
-              control={form.control}
-              name={`products.${index}.midfoot_arch` as any}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{config.productLabels?.midfoot_arch || "Zona arco"}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {MIDFOOT_ARCH_OPTIONS.map((value) => (
-                        <SelectItem key={value} value={value}>
-                          {value}
-                        </SelectItem>
+      <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+        <div>
+          <div className="mb-4">
+            <h5 className="text-sm font-bold text-gray-500 dark:text-gray-300">Mediopié - Zona arco</h5>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {config.productFields.midfoot_arch !== false && (
+              <FormField
+                control={form.control}
+                name={`products.${index}.midfoot_arch` as any}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{config.productLabels?.midfoot_arch || "Zona arco"}</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {MIDFOOT_ARCH_OPTIONS.map((value) => (
+                          <SelectItem key={value} value={value}>
+                            {value}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            {config.productFields.midfoot_external_wedge !== false && (
+              <FormField
+                control={form.control}
+                name={`products.${index}.midfoot_external_wedge` as any}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{config.productLabels?.midfoot_external_wedge || "Cuña Mediopié Externa"}</FormLabel>
+                    <div className="flex items-center gap-4 py-2">
+                      {MIDFOOT_EXTERNAL_WEDGE_OPTIONS.map((opt) => (
+                        <label key={opt} className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name={`midfoot_external_wedge_${index}`}
+                            value={opt}
+                            checked={field.value === opt}
+                            onChange={() => field.onChange(opt)}
+                          />
+                          <span>{opt}</span>
+                        </label>
                       ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-          {config.productFields.midfoot_external_wedge !== false && (
-            <FormField
-              control={form.control}
-              name={`products.${index}.midfoot_external_wedge` as any}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{config.productLabels?.midfoot_external_wedge || "Cuña Mediopié Externa"}</FormLabel>
-                  <div className="flex items-center gap-4 py-2">
-                    {MIDFOOT_EXTERNAL_WEDGE_OPTIONS.map((opt) => (
-                      <label key={opt} className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name={`midfoot_external_wedge_${index}`}
-                          value={opt}
-                          checked={field.value === opt}
-                          onChange={() => field.onChange(opt)}
-                        />
-                        <span>{opt}</span>
-                      </label>
-                    ))}
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            {/* Slider móvil: debe ir después de Zona arco y Cuña Mediopié Externa */}
+            {(() => {
+              const selected = form.watch(`products.${index}.midfoot_arch` as const) as string
+              const images = MIDFOOT_ARCH_IMAGE_MAP[selected] || []
+              const alt = selected ? `Imagen ${selected}` : "Imagen Mediopié"
+              return (
+                <div className="block md:hidden mt-2">
+                  <ProductImageSlider images={images} alt={alt} />
+                </div>
+              )
+            })()}
+          </div>
         </div>
+        {/* Slider desktop */}
+        {(() => {
+          const selected = form.watch(`products.${index}.midfoot_arch` as const) as string
+          const images = MIDFOOT_ARCH_IMAGE_MAP[selected] || []
+          const alt = selected ? `Imagen ${selected}` : "Imagen Mediopié"
+          return (
+            <div className="hidden md:block">
+              <ProductImageSlider images={images} alt={alt} />
+            </div>
+          )
+        })()}
       </div>
 
       {/* Retropié - Zona calcáneo */}
       {config.productFields.rearfoot_calcaneus !== false && (
-        <FormField
-          control={form.control}
-          name={`products.${index}.rearfoot_calcaneus` as any}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{config.productLabels?.rearfoot_calcaneus || "Retropié - Zona calcáneo"}</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {REARFOOT_OPTIONS.map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {value}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+          <FormField
+            control={form.control}
+            name={`products.${index}.rearfoot_calcaneus` as any}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-bold text-gray-500">{config.productLabels?.rearfoot_calcaneus || "Retropié - Zona calcáneo"}</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {REARFOOT_OPTIONS.map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {value}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {/* Slider móvil */}
+                {(() => {
+                  const selected = form.watch(`products.${index}.rearfoot_calcaneus` as const) as string
+                  const images = REARFOOT_IMAGE_MAP[selected] || []
+                  const alt = selected ? `Imagen ${selected}` : "Imagen Retropié"
+                  return (
+                    <div className="block md:hidden mt-2">
+                      <ProductImageSlider images={images} alt={alt} />
+                    </div>
+                  )
+                })()}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          {/* Slider desktop */}
+          {(() => {
+            const selected = form.watch(`products.${index}.rearfoot_calcaneus` as const) as string
+            const images = REARFOOT_IMAGE_MAP[selected] || []
+            const alt = selected ? `Imagen ${selected}` : "Imagen Retropié"
+            return (
+              <div className="hidden md:block">
+                <ProductImageSlider images={images} alt={alt} />
+              </div>
+            )
+          })()}
+        </div>
       )}
 
       {/* Detalle de milímetros para Realce en talón */}
@@ -617,27 +873,184 @@ export function ProductForm({ form, index }: ProductFormProps) {
 
       {/* Cuña Posterior */}
       {config.productFields.posterior_wedge !== false && (
-        <FormField
-          control={form.control}
-          name={`products.${index}.posterior_wedge`}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{config.productLabels?.posterior_wedge || "Cuña Posterior"}</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="Cuña Posterior Externa">Cuña Posterior Externa</SelectItem>
-                  <SelectItem value="Cuña Posterior Interna">Cuña Posterior Interna</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+          <FormField
+            control={form.control}
+            name={`products.${index}.posterior_wedge`}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-bold text-gray-500">{config.productLabels?.posterior_wedge || "Cuña Posterior"}</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Cuña Posterior Externa">Cuña Posterior Externa</SelectItem>
+                    <SelectItem value="Cuña Posterior Interna">Cuña Posterior Interna</SelectItem>
+                  </SelectContent>
+                </Select>
+                {/* Slider móvil */}
+                {(() => {
+                  const selected = form.watch(`products.${index}.posterior_wedge` as const) as string
+                  const images = POSTERIOR_WEDGE_IMAGE_MAP[selected] || []
+                  const alt = selected ? `Imagen ${selected}` : "Imagen Cuña Posterior"
+                  return (
+                    <div className="block md:hidden mt-2">
+                      <ProductImageSlider images={images} alt={alt} />
+                    </div>
+                  )
+                })()}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          {/* Slider desktop */}
+          {(() => {
+            const selected = form.watch(`products.${index}.posterior_wedge` as const) as string
+            const images = POSTERIOR_WEDGE_IMAGE_MAP[selected] || []
+            const alt = selected ? `Imagen ${selected}` : "Imagen Cuña Posterior"
+            return (
+              <div className="hidden md:block">
+                <ProductImageSlider images={images} alt={alt} />
+              </div>
+            )
+          })()}
+        </div>
+      )}
+
+      {/* Modal guía de talles (portal a body para centrar en viewport) */}
+      {mounted && isSizeGuideOpen && createPortal(
+        (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-black/60"
+              onClick={() => setIsSizeGuideOpen(false)}
+            />
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Guía de talles"
+              className="relative z-10 bg-white dark:bg-neutral-900 rounded-md shadow-lg max-w-4xl w-full max-h-[90vh] flex flex-col"
+            >
+              <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 dark:border-gray-800 sticky top-0 bg-white/95 dark:bg-neutral-900/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 supports-[backdrop-filter]:dark:bg-neutral-900/60 z-10">
+                <h3 className="text-sm font-medium">Guía de talles</h3>
+                <button
+                  type="button"
+                  onClick={() => setIsSizeGuideOpen(false)}
+                  className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                  aria-label="Cerrar"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="relative w-full flex-1 min-h-0 overflow-y-auto p-3">
+                {/* Filtro en mobile (manteniendo vista apilada) */}
+                <div className="mb-3 md:hidden">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-600 dark:text-gray-300">Ir a:</span>
+                    <div className="min-w-[160px]">
+                      <select
+                        className="w-full rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-neutral-800 text-xs px-2 py-2"
+                        value={sizeGuideTab}
+                        onChange={(e) => {
+                          const k = e.target.value as typeof sizeGuideTab
+                          setSizeGuideTab(k)
+                          // dar tiempo a layout antes de scroll suave
+                          requestAnimationFrame(() => scrollToSection(k))
+                        }}
+                      >
+                        <option value="men">Hombre</option>
+                        <option value="women">Mujer</option>
+                        <option value="kids">Niños</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Vista apilada para todas las pantallas */}
+                <div className="block">
+                  {/* HOMBRE */}
+                  <section ref={menRef} className="mb-6 scroll-mt-16">
+                    <h4 className="text-sm font-semibold mb-2">Hombre</h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs md:text-sm">
+                        <thead>
+                          <tr className="text-left bg-gray-50 dark:bg-gray-800">
+                            <th className="px-2 py-2 font-medium">Talle U.S.</th>
+                            <th className="px-2 py-2 font-medium">Talle ARG</th>
+                            <th className="px-2 py-2 font-medium">Largo del pie (cm)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {SIZE_GUIDE.men.map((r, i) => (
+                            <tr key={`men-${i}`} className={i % 2 ? "bg-white/40 dark:bg-white/5" : ""}>
+                              <td className="px-2 py-1">{r.us}</td>
+                              <td className="px-2 py-1">{r.arg}</td>
+                              <td className="px-2 py-1">{r.cm}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+
+                  {/* MUJER */}
+                  <section ref={womenRef} className="mb-6 scroll-mt-16">
+                    <h4 className="text-sm font-semibold mb-2">Mujer</h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs md:text-sm">
+                        <thead>
+                          <tr className="text-left bg-gray-50 dark:bg-gray-800">
+                            <th className="px-2 py-2 font-medium">Talle U.S.</th>
+                            <th className="px-2 py-2 font-medium">Talle ARG</th>
+                            <th className="px-2 py-2 font-medium">Largo del pie (cm)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {SIZE_GUIDE.women.map((r, i) => (
+                            <tr key={`women-${i}`} className={i % 2 ? "bg-white/40 dark:bg-white/5" : ""}>
+                              <td className="px-2 py-1">{r.us}</td>
+                              <td className="px-2 py-1">{r.arg}</td>
+                              <td className="px-2 py-1">{r.cm}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+
+                  {/* NIÑOS */}
+                  <section ref={kidsRef} className="scroll-mt-16">
+                    <h4 className="text-sm font-semibold mb-2">Niños</h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs md:text-sm">
+                        <thead>
+                          <tr className="text-left bg-gray-50 dark:bg-gray-800">
+                            <th className="px-2 py-2 font-medium">Talle U.S.</th>
+                            <th className="px-2 py-2 font-medium">Talle ARG</th>
+                            <th className="px-2 py-2 font-medium">Largo del pie (cm)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {SIZE_GUIDE.kids.map((r, i) => (
+                            <tr key={`kids-${i}`} className={i % 2 ? "bg-white/40 dark:bg-white/5" : ""}>
+                              <td className="px-2 py-1">{r.us}</td>
+                              <td className="px-2 py-1">{r.arg}</td>
+                              <td className="px-2 py-1">{r.cm}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+                </div>
+              </div>
+            </div>
+          </div>
+        ),
+        document.body
       )}
     </div>
   )
