@@ -11,8 +11,8 @@ import type { OrderFormData } from "@/lib/validations"
 import { Input } from "@/components/ui/input"
 import { useFormConfig } from "@/hooks/use-form-config"
 
-// Slider simple de imágenes 1:1
-function ProductImageSlider({ images, alt }: { images: string[]; alt: string }) {
+// Slider simple de imágenes para Tipo Plantilla (ratio 1.1:1)
+function ProductTypeImageSlider({ images, alt }: { images: string[]; alt: string }) {
   const [index, setIndex] = useState(0)
   const [dragging, setDragging] = useState(false)
   // Cross-fade
@@ -160,6 +160,155 @@ function ProductImageSlider({ images, alt }: { images: string[]; alt: string }) 
   )
 }
 
+// Slider de imágenes para opciones (ratio 3:4)
+function ProductImageSlider({ images, alt }: { images: string[]; alt: string }) {
+  const [index, setIndex] = useState(0)
+  const [dragging, setDragging] = useState(false)
+  // Cross-fade
+  const [currSrc, setCurrSrc] = useState<string | null>(null)
+  const [prevSrc, setPrevSrc] = useState<string | null>(null)
+  const [fadeOn, setFadeOn] = useState(false)
+  const startXRef = useRef<number | null>(null)
+  const currentXRef = useRef<number>(0)
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const safeList = useMemo(() => (images && images.length > 0 ? images : ["/Logo-Under-Feet-green-.png", "/Logo-Under-Feet-green-.png"]), [images])
+
+  // Reinicia al primer slide cuando cambian las imágenes (p. ej., al cambiar de tipo de plantilla)
+  useEffect(() => {
+    setIndex(0)
+  }, [images])
+
+  // Inicializa la imagen actual cuando cambia el set de imágenes para evitar flashes
+  useEffect(() => {
+    const first = safeList[0]
+    setPrevSrc(null)
+    setCurrSrc(first)
+    setFadeOn(false)
+    const raf = requestAnimationFrame(() => setFadeOn(true))
+    return () => cancelAnimationFrame(raf)
+  }, [safeList])
+
+  // Configura las capas prev/curr y dispara el cross-fade en cada cambio
+  useEffect(() => {
+    const next = safeList[Math.min(index, safeList.length - 1)]
+    setPrevSrc((prev) => (currSrc ?? prev))
+    setCurrSrc(next)
+    // Reinicia y activa el fade en el próximo frame
+    setFadeOn(false)
+    let raf1 = 0, raf2 = 0
+    raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setFadeOn(true))
+    })
+    return () => {
+      if (raf1) cancelAnimationFrame(raf1)
+      if (raf2) cancelAnimationFrame(raf2)
+    }
+  }, [index, safeList])
+
+  const commitSwipe = () => {
+    const startX = startXRef.current
+    if (startX === null) return
+    const delta = currentXRef.current - startX
+    const width = containerRef.current?.clientWidth || 1
+    const threshold = Math.max(40, width * 0.15) // 15% del ancho o 40px
+    if (delta > threshold) {
+      // swipe derecha -> imagen anterior
+      setIndex((i) => (i - 1 + safeList.length) % safeList.length)
+    } else if (delta < -threshold) {
+      // swipe izquierda -> siguiente imagen
+      setIndex((i) => (i + 1) % safeList.length)
+    }
+    startXRef.current = null
+    currentXRef.current = 0
+    setDragging(false)
+  }
+
+  // Handlers touch
+  const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    startXRef.current = e.touches[0].clientX
+    currentXRef.current = startXRef.current
+    setDragging(true)
+  }
+  const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (startXRef.current !== null) {
+      currentXRef.current = e.touches[0].clientX
+    }
+  }
+  const onTouchEnd = () => commitSwipe()
+
+  // Handlers mouse
+  const onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    startXRef.current = e.clientX
+    currentXRef.current = e.clientX
+    setDragging(true)
+  }
+  const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (startXRef.current !== null) {
+      currentXRef.current = e.clientX
+    }
+  }
+  const onMouseUp = () => commitSwipe()
+  const onMouseLeave = () => {
+    if (dragging) commitSwipe()
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className={`relative w-full aspect-[3/4] overflow-hidden rounded-md border bg-[#FDFDFC] dark:bg-[#F9F7FA] ${dragging ? "cursor-grabbing" : "cursor-grab"}`}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseUp={onMouseUp}
+      onMouseLeave={onMouseLeave}
+      role="region"
+      aria-roledescription="carousel"
+      aria-label="Imágenes del producto"
+    >
+      {/* Capa inferior: imagen previa */}
+      {prevSrc && (
+        <Image
+          key={`prev-${prevSrc}`}
+          src={prevSrc}
+          alt={alt}
+          fill
+          draggable={false}
+          className={`object-contain select-none transition-opacity duration-500 ease-in-out ${fadeOn ? "opacity-0" : "opacity-100"}`}
+          sizes="(max-width: 768px) 100vw, 50vw"
+          priority={false}
+        />
+      )}
+      {/* Capa superior: imagen actual */}
+      {currSrc && (
+        <Image
+          key={`curr-${currSrc}`}
+          src={currSrc}
+          alt={alt}
+          fill
+          draggable={false}
+          className={`object-contain select-none transition-opacity duration-500 ease-in-out ${fadeOn ? "opacity-100" : "opacity-0"}`}
+          sizes="(max-width: 768px) 100vw, 50vw"
+          priority={false}
+        />
+      )}
+      {/* Puntos (indicadores y control) */}
+      <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
+        {safeList.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            aria-label={`Ir a imagen ${i + 1}`}
+            onClick={() => setIndex(i)}
+            className={`h-2.5 w-2.5 rounded-full transition-colors ${i === index ? "bg-white" : "bg-white/50 hover:bg-white/70"}`}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 interface ProductFormProps {
   form: UseFormReturn<OrderFormData>
   index: number
@@ -206,10 +355,10 @@ export function ProductForm({ form, index }: ProductFormProps) {
 
   // Mapas de imágenes por opción para cada dropdown adicional
   const FOREFOOT_IMAGE_MAP: Record<string, string[]> = {
-    "Oliva Barra": ["/Logo-Under-Feet-green-.png"],
-    "Pad Running": ["/Logo-Under-Feet-green-.png"],
-    "Pad Medialuna": ["/Logo-Under-Feet-green-.png"],
-    "Valente Valenti": ["/Logo-Under-Feet-green-.png"],
+    "Oliva Barra": ["/Zona-metatarsal/Oliva-Barra.svg"],
+    "Pad Running": ["/Zona-metatarsal/Pad-Running.svg"],
+    "Pad Medialuna": ["/Zona-metatarsal/Pad-Medialuna.svg"],
+    "Valente Valenti": ["/Zona-metatarsal/Valenti-Valenti.svg"],
   }
 
   const ANTERIOR_WEDGE_IMAGE_MAP: Record<string, string[]> = {
@@ -477,7 +626,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Seleccione el tipo" />
+                      <SelectValue placeholder="Seleccionar tipo"/>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -500,7 +649,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
             const alt = selectedType ? `Imagen de ${selectedType}` : "Imagen de producto"
             return (
               <div className="block md:hidden">
-                <ProductImageSlider images={images} alt={alt} />
+                <ProductTypeImageSlider images={images} alt={alt} />
               </div>
             )
           })()}
@@ -530,7 +679,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Seleccione el talle" />
+                        <SelectValue placeholder="Seleccionar talle" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -593,7 +742,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
           const alt = selectedType ? `Imagen de ${selectedType}` : "Imagen de producto"
           return (
             <div className="hidden md:block">
-              <ProductImageSlider images={images} alt={alt} />
+              <ProductTypeImageSlider images={images} alt={alt} />
             </div>
           )
         })()}
@@ -610,12 +759,12 @@ export function ProductForm({ form, index }: ProductFormProps) {
             name={`products.${index}.forefoot_metatarsal` as any}
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="font-bold text-gray-500">{config.productLabels?.forefoot_metatarsal || "Antepié - Zona metatarsal"}</FormLabel>
+                <FormLabel className="font-bold text-gray-600">{config.productLabels?.forefoot_metatarsal || "Antepié - Zona metatarsal"}</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
+                      <SelectValue placeholder="Seleccionar"/>
+                    </SelectTrigger>  
                   </FormControl>
                   <SelectContent>
                     {FOREFOOT_OPTIONS.map((value) => (
@@ -662,11 +811,11 @@ export function ProductForm({ form, index }: ProductFormProps) {
             name={`products.${index}.anterior_wedge` as any}
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="font-bold text-gray-500">{config.productLabels?.anterior_wedge || "Cuña Anterior"}</FormLabel>
+                <FormLabel className="font-bold text-gray-600">{config.productLabels?.anterior_wedge || "Cuña Anterior"}</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Seleccionar" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -710,7 +859,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
       <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
         <div>
           <div className="mb-4">
-            <h5 className="text-sm font-bold text-gray-500 dark:text-gray-300">Mediopié - Zona arco</h5>
+            <h5 className="text-sm font-bold text-gray-600 dark:text-gray-300">Mediopié - Zona arco</h5>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {config.productFields.midfoot_arch !== false && (
@@ -723,7 +872,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue />
+                          <SelectValue placeholder="Seleccionar" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -799,11 +948,11 @@ export function ProductForm({ form, index }: ProductFormProps) {
             name={`products.${index}.rearfoot_calcaneus` as any}
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="font-bold text-gray-500">{config.productLabels?.rearfoot_calcaneus || "Retropié - Zona calcáneo"}</FormLabel>
+                <FormLabel className="font-bold text-gray-600">{config.productLabels?.rearfoot_calcaneus || "Retropié - Zona calcáneo"}</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Seleccionar" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -879,11 +1028,11 @@ export function ProductForm({ form, index }: ProductFormProps) {
             name={`products.${index}.posterior_wedge`}
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="font-bold text-gray-500">{config.productLabels?.posterior_wedge || "Cuña Posterior"}</FormLabel>
+                <FormLabel className="font-bold text-gray-600">{config.productLabels?.posterior_wedge || "Cuña Posterior"}</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Seleccionar" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
