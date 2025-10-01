@@ -22,7 +22,7 @@ function ProductTypeImageSlider({ images, alt }: { images: string[]; alt: string
   const startXRef = useRef<number | null>(null)
   const currentXRef = useRef<number>(0)
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const safeList = useMemo(() => (images && images.length > 0 ? images : ["/Logo-Under-Feet-green-.png", "/Logo-Under-Feet-green-.png"]), [images])
+  const safeList = useMemo(() => (images && images.length > 0 ? images : ["/Underfeet-placeholder.png", "/Underfeet-placeholder.png"]), [images])
 
   // Reinicia al primer slide cuando cambian las imágenes (p. ej., al cambiar de tipo de plantilla)
   useEffect(() => {
@@ -171,7 +171,7 @@ function ProductImageSlider({ images, alt }: { images: string[]; alt: string }) 
   const startXRef = useRef<number | null>(null)
   const currentXRef = useRef<number>(0)
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const safeList = useMemo(() => (images && images.length > 0 ? images : ["/Logo-Under-Feet-green-.png", "/Logo-Under-Feet-green-.png"]), [images])
+  const safeList = useMemo(() => (images && images.length > 0 ? images : ["/Underfeet-placeholder.png", "/Underfeet-placeholder.png"]), [images])
 
   // Reinicia al primer slide cuando cambian las imágenes (p. ej., al cambiar de tipo de plantilla)
   useEffect(() => {
@@ -346,11 +346,11 @@ export function ProductForm({ form, index }: ProductFormProps) {
     "Cross Trainer": ["/cross.jpg", "/CROSS-TRAINER-FRENTE.jpg"],
     "Botín": ["/botin-gris.jpg", "/BOTIN-AZUL-FRENTE.jpg"],
     "Junior": ["/junior-gris.jpg", "/JUNIOR-AZUL-FRENTE.jpg"],
-    "Plantilla 3D": ["/Logo-Under-Feet-green-.png", "/Logo-Under-Feet-green-.png"],
-    "Mi Marca Sport": ["/Logo-Under-Feet-green-.png", "/Logo-Under-Feet-green-.png"],
-    "Mi Marca Clásica": ["/Logo-Under-Feet-green-.png", "/Logo-Under-Feet-green-.png"],
-    "Mi Marca 3D": ["/Logo-Under-Feet-green-.png", "/Logo-Under-Feet-green-.png"],
-    "Sandalia Under Feet": ["/Logo-Under-Feet-green-.png", "/Logo-Under-Feet-green-.png"],
+    "Plantilla 3D": ["/Underfeet-placeholder.png", "/Underfeet-placeholder.png"],
+    "Mi Marca Sport": ["/Underfeet-placeholder.png", "/Underfeet-placeholder.png"],
+    "Mi Marca Clásica": ["/Underfeet-placeholder.png", "/Underfeet-placeholder.png"],
+    "Mi Marca 3D": ["/Underfeet-placeholder.png", "/Underfeet-placeholder.png"],
+    "Sandalia Under Feet": ["/Underfeet-placeholder.png", "/Underfeet-placeholder.png"],
   }
 
   // Mapas de imágenes por opción para cada dropdown adicional
@@ -362,25 +362,25 @@ export function ProductForm({ form, index }: ProductFormProps) {
   }
 
   const ANTERIOR_WEDGE_IMAGE_MAP: Record<string, string[]> = {
-    "Cuña Anterior Externa": ["/Logo-Under-Feet-green-.png"],
-    "Cuña Anterior Interna": ["/Logo-Under-Feet-green-.png"],
+    "Cuña Anterior Externa": ["/Underfeet-placeholder.png"],
+    "Cuña Anterior Interna": ["/Underfeet-placeholder.png"],
   }
 
   const MIDFOOT_ARCH_IMAGE_MAP: Record<string, string[]> = {
-    "Arco Flex": ["/Logo-Under-Feet-green-.png"],
-    "Arco Semiblando": ["/Logo-Under-Feet-green-.png"],
-    "Arco Látex": ["/Logo-Under-Feet-green-.png"],
+    "Arco Flex": ["/Underfeet-placeholder.png"],
+    "Arco Semiblando": ["/Underfeet-placeholder.png"],
+    "Arco Látex": ["/Underfeet-placeholder.png"],
   }
 
   const REARFOOT_IMAGE_MAP: Record<string, string[]> = {
-    "Botón Látex": ["/Logo-Under-Feet-green-.png"],
-    "Talonera Descanso Espolón": ["/Logo-Under-Feet-green-.png"],
-    "Realce en talón": ["/Logo-Under-Feet-green-.png"],
+    "Botón Látex": ["/Underfeet-placeholder.png"],
+    "Talonera Descanso Espolón": ["/Underfeet-placeholder.png"],
+    "Realce en talón": ["/Underfeet-placeholder.png"],
   }
 
   const POSTERIOR_WEDGE_IMAGE_MAP: Record<string, string[]> = {
-    "Cuña Posterior Externa": ["/Logo-Under-Feet-green-.png"],
-    "Cuña Posterior Interna": ["/Logo-Under-Feet-green-.png"],
+    "Cuña Posterior Externa": ["/Underfeet-placeholder.png"],
+    "Cuña Posterior Interna": ["/Underfeet-placeholder.png"],
   }
 
   const SIZE_OPTIONS = [
