@@ -355,32 +355,38 @@ export function ProductForm({ form, index }: ProductFormProps) {
 
   // Mapas de imágenes por opción para cada dropdown adicional
   const FOREFOOT_IMAGE_MAP: Record<string, string[]> = {
-    "Oliva Barra": ["/Zona-metatarsal/Oliva-Barra.svg"],
-    "Pad Running": ["/Zona-metatarsal/Pad-Running.svg"],
-    "Pad Medialuna": ["/Zona-metatarsal/Pad-Medialuna.svg"],
-    "Valente Valenti": ["/Zona-metatarsal/Valenti-Valenti.svg"],
+    "Oliva Barra": ["/zonas/Oliva-Barra.png"],
+    "Pad Running": ["/zonas/Pad-Running.png"],
+    "Pad Medialuna": ["/zonas/Pad-Medialuna.png"],
+    "Valente Valenti": ["/zonas/Valenti-Valenti.png"],
   }
 
   const ANTERIOR_WEDGE_IMAGE_MAP: Record<string, string[]> = {
-    "Cuña Anterior Externa": ["/Underfeet-placeholder.png"],
-    "Cuña Anterior Interna": ["/Underfeet-placeholder.png"],
+    "Cuña Anterior Externa": ["/zonas/Cuna-Anterior-Externa.png"],
+    "Cuña Anterior Interna": ["/zonas/Cuna-Anterior-Interna.png"],
   }
 
   const MIDFOOT_ARCH_IMAGE_MAP: Record<string, string[]> = {
-    "Arco Flex": ["/Underfeet-placeholder.png"],
-    "Arco Semiblando": ["/Underfeet-placeholder.png"],
-    "Arco Látex": ["/Underfeet-placeholder.png"],
+    "Arco Flex": ["/zonas/Arco-Flex.png"],
+    "Arco Semiblando": ["/zonas/Arco-Semiblando.png"],
+    "Arco Látex": ["/zonas/Arco-Latex.png"],
+  }
+
+  const MIDFOOT_ARCH_WITH_WEDGE_IMAGE_MAP: Record<string, string[]> = {
+    "Arco Flex": ["/zonas/Arco-Flex-c-cuna.png"],
+    "Arco Semiblando": ["/zonas/Arco-Semiblando-c-cuna.png"],
+    "Arco Látex": ["/zonas/Arco-Latex-c-cuna.png"],
   }
 
   const REARFOOT_IMAGE_MAP: Record<string, string[]> = {
-    "Botón Látex": ["/Underfeet-placeholder.png"],
-    "Talonera Descanso Espolón": ["/Underfeet-placeholder.png"],
-    "Realce en talón": ["/Underfeet-placeholder.png"],
+    "Botón Látex": ["/zonas/Boton-Latex.png"],
+    "Talonera Descanso Espolón": ["/zonas/Talonera-Descanso-Espolon.png"],
+    "Realce en talón": ["/zonas/Realce-en-talon.png"],
   }
 
   const POSTERIOR_WEDGE_IMAGE_MAP: Record<string, string[]> = {
-    "Cuña Posterior Externa": ["/Underfeet-placeholder.png"],
-    "Cuña Posterior Interna": ["/Underfeet-placeholder.png"],
+    "Cuña Posterior Externa": ["/zonas/Cuna-Posterio-Externa.png"],
+    "Cuña Posterior Interna": ["/zonas/Cuna-Posterio-Interna.png"],
   }
 
   const SIZE_OPTIONS = [
@@ -917,7 +923,9 @@ export function ProductForm({ form, index }: ProductFormProps) {
             {/* Slider móvil: debe ir después de Zona arco y Cuña Mediopié Externa */}
             {(() => {
               const selected = form.watch(`products.${index}.midfoot_arch` as const) as string
-              const images = MIDFOOT_ARCH_IMAGE_MAP[selected] || []
+              const hasWedge = form.watch(`products.${index}.midfoot_external_wedge` as const) === "Sí"
+              const imageMap = hasWedge ? MIDFOOT_ARCH_WITH_WEDGE_IMAGE_MAP : MIDFOOT_ARCH_IMAGE_MAP
+              const images = imageMap[selected] || []
               const alt = selected ? `Imagen ${selected}` : "Imagen Mediopié"
               return (
                 <div className="block md:hidden mt-2">
@@ -930,7 +938,9 @@ export function ProductForm({ form, index }: ProductFormProps) {
         {/* Slider desktop */}
         {(() => {
           const selected = form.watch(`products.${index}.midfoot_arch` as const) as string
-          const images = MIDFOOT_ARCH_IMAGE_MAP[selected] || []
+          const hasWedge = form.watch(`products.${index}.midfoot_external_wedge` as const) === "Sí"
+          const imageMap = hasWedge ? MIDFOOT_ARCH_WITH_WEDGE_IMAGE_MAP : MIDFOOT_ARCH_IMAGE_MAP
+          const images = imageMap[selected] || []
           const alt = selected ? `Imagen ${selected}` : "Imagen Mediopié"
           return (
             <div className="hidden md:block">
