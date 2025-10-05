@@ -21,8 +21,8 @@ export async function POST(request: NextRequest) {
       const insertWithNotes = await supabase
         .from("customer_requests")
         .insert({
-          name: validatedData.name,
-          lastname: validatedData.lastname,
+          name: validatedData.company_or_professional,
+          lastname: "",
           email: validatedData.email,
           phone: validatedData.phone || null,
           status: "pending",
@@ -39,8 +39,8 @@ export async function POST(request: NextRequest) {
       const insertWithoutNotes = await supabase
         .from("customer_requests")
         .insert({
-          name: validatedData.name,
-          lastname: validatedData.lastname,
+          name: validatedData.company_or_professional,
+          lastname: "",
           email: validatedData.email,
           phone: validatedData.phone || null,
           status: "pending",
@@ -57,23 +57,33 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert product requests (nuevo esquema de columnas)
-    const productRequests = validatedData.products.map((product) => ({
-      customer_request_id: customerRequest.id,
-      // Datos del paciente por producto
-      patient_name: product.patient_name,
-      patient_lastname: product.patient_lastname,
-      // Selección principal y configuraciones
-      product_type: product.product_type,
-      template_color: product.template_color || null,
-      template_size: product.template_size || null,
-      forefoot_metatarsal: product.forefoot_metatarsal || null,
-      anterior_wedge: product.anterior_wedge || null,
-      midfoot_arch: product.midfoot_arch || null,
-      midfoot_external_wedge: product.midfoot_external_wedge || null,
-      rearfoot_calcaneus: product.rearfoot_calcaneus || null,
-      heel_raise_mm: product.heel_raise_mm || null,
-      posterior_wedge: product.posterior_wedge || null,
-    }))
+    const productRequests = validatedData.products.map((product) => {
+      const anteriorWedgeValue =
+        product.anterior_wedge === "Cuña Anterior Interna" && product.anterior_wedge_mm
+          ? `${product.anterior_wedge} (${product.anterior_wedge_mm})`
+          : product.anterior_wedge || null
+      const posteriorWedgeValue =
+        (product.posterior_wedge === "Cuña Posterior Externa" || product.posterior_wedge === "Cuña Posterior Interna") && product.posterior_wedge_mm
+          ? `${product.posterior_wedge} (${product.posterior_wedge_mm})`
+          : product.posterior_wedge || null
+      return {
+        customer_request_id: customerRequest.id,
+        // Datos del paciente por producto
+        patient_name: product.patient_name,
+        patient_lastname: product.patient_lastname,
+        // Selección principal y configuraciones
+        product_type: product.product_type,
+        template_color: product.template_color || null,
+        template_size: product.template_size || null,
+        forefoot_metatarsal: product.forefoot_metatarsal || null,
+        anterior_wedge: anteriorWedgeValue,
+        midfoot_arch: product.midfoot_arch || null,
+        midfoot_external_wedge: product.midfoot_external_wedge || null,
+        rearfoot_calcaneus: product.rearfoot_calcaneus || null,
+        heel_raise_mm: product.heel_raise_mm || null,
+        posterior_wedge: posteriorWedgeValue,
+      }
+    })
     // Try inserting with new columns first; if it fails, fallback is no longer supported (zoneOption removido)
     let productsError: any | null = null
     {
@@ -100,10 +110,19 @@ export async function POST(request: NextRequest) {
 
     // Prepare email data
     const emailData: OrderEmailData = {
-      customerName: `${validatedData.name} ${validatedData.lastname}`,
+      customerName: validatedData.company_or_professional,
       customerEmail: validatedData.email,
       orderNumber: customerRequest.id.toString(),
-      products: validatedData.products.map((product) => ({
+      products: validatedData.products.map((product) => {
+        const anteriorWedgeValue =
+          product.anterior_wedge === "Cuña Anterior Interna" && product.anterior_wedge_mm
+            ? `${product.anterior_wedge} (${product.anterior_wedge_mm})`
+            : product.anterior_wedge || ""
+        const posteriorWedgeValue =
+          (product.posterior_wedge === "Cuña Posterior Externa" || product.posterior_wedge === "Cuña Posterior Interna") && product.posterior_wedge_mm
+            ? `${product.posterior_wedge} (${product.posterior_wedge_mm})`
+            : product.posterior_wedge || ""
+        return ({
         productType: product.product_type,
         quantity: 1, // Each product is quantity 1 in this system
         options: {
@@ -113,14 +132,15 @@ export async function POST(request: NextRequest) {
           "Nombre Paciente": product.patient_name,
           "Apellido Paciente": product.patient_lastname,
           "Antepié - Zona metatarsal": product.forefoot_metatarsal || "",
-          "Cuña Anterior": product.anterior_wedge || "",
+          "Cuña Anterior": anteriorWedgeValue,
           "Mediopié - Zona arco": product.midfoot_arch || "",
           "Cuña Mediopié Externa": product.midfoot_external_wedge || "",
           "Retropié - Zona calcáneo": product.rearfoot_calcaneus || "",
           "Detalle de mm (realce en talón)": product.heel_raise_mm || "",
-          "Cuña posterior": product.posterior_wedge,
+          "Cuña posterior": posteriorWedgeValue,
         },
-      })),
+      })
+      }),
       totalProducts: validatedData.products.length,
       submittedAt: new Date().toISOString(),
       notes: validatedData.notes || "",
@@ -128,28 +148,38 @@ export async function POST(request: NextRequest) {
 
     const sheetsData = {
       orderId: customerRequest.id.toString(),
-      // Nuevo formato: nombre y apellido por separado
-      firstName: validatedData.name,
-      lastName: validatedData.lastname,
-      // Compatibilidad: nombre completo por si faltan campos
-      customerName: `${validatedData.name} ${validatedData.lastname}`,
+      // Usamos el valor unificado en Nombre y dejamos Apellido vacío
+      firstName: validatedData.company_or_professional,
+      lastName: "",
+      // Compatibilidad: nombre completo (mismo valor)
+      customerName: validatedData.company_or_professional,
       customerEmail: validatedData.email,
       customerPhone: validatedData.phone || "",
       submittedAt: customerRequest.created_at,
       status: "pending",
-      products: validatedData.products.map((product) => ({
+      products: validatedData.products.map((product) => {
+        const anteriorWedgeValue =
+          product.anterior_wedge === "Cuña Anterior Interna" && product.anterior_wedge_mm
+            ? `${product.anterior_wedge} (${product.anterior_wedge_mm})`
+            : product.anterior_wedge || ""
+        const posteriorWedgeValue =
+          (product.posterior_wedge === "Cuña Posterior Externa" || product.posterior_wedge === "Cuña Posterior Interna") && product.posterior_wedge_mm
+            ? `${product.posterior_wedge} (${product.posterior_wedge_mm})`
+            : product.posterior_wedge || ""
+        return ({
         productType: product.product_type,
-        posteriorWedge: product.posterior_wedge || "",
+        posteriorWedge: posteriorWedgeValue,
         // Nuevos campos
         templateColor: product.template_color || "",
         templateSize: product.template_size || "",
         forefootMetatarsal: product.forefoot_metatarsal || "",
-        anteriorWedge: product.anterior_wedge || "",
+        anteriorWedge: anteriorWedgeValue,
         midfootArch: product.midfoot_arch || "",
         midfootExternalWedge: product.midfoot_external_wedge || "",
         rearfootCalcaneus: product.rearfoot_calcaneus || "",
         heelRaiseMm: product.heel_raise_mm || "",
-      })),
+      })
+      }),
       notes: validatedData.notes || "",
     }
 

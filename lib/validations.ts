@@ -14,6 +14,8 @@ export const productFormSchema = z.object({
   // Configuraciones específicas por zona
   forefoot_metatarsal: z.string().optional().default(""),
   anterior_wedge: z.string().optional().default(""),
+  // Espesor solo aplica si anterior_wedge es "Cuña Anterior Interna"
+  anterior_wedge_mm: z.string().optional().default(""),
   midfoot_arch: z.string().optional().default(""),
   midfoot_external_wedge: z.string().optional().default(""),
   rearfoot_calcaneus: z.string().optional().default(""),
@@ -21,11 +23,11 @@ export const productFormSchema = z.object({
 
   // Cuña Posterior
   posterior_wedge: z.string().optional().default(""),
+  posterior_wedge_mm: z.string().optional().default(""),
 })
 
 export const orderFormSchema = z.object({
-  name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-  lastname: z.string().min(2, "El apellido debe tener al menos 2 caracteres"),
+  company_or_professional: z.string().min(2, "Debe tener al menos 2 caracteres"),
   email: z.string().email("Debe ingresar un email válido"),
   phone: z.string().optional(),
   products: z.array(productFormSchema).min(1, "Debe agregar al menos un producto"),

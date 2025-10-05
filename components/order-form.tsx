@@ -24,8 +24,7 @@ export function OrderForm() {
   const form = useForm<OrderFormData>({
     resolver: zodResolver(orderFormSchema),
     defaultValues: {
-      name: "",
-      lastname: "",
+      company_or_professional: "",
       email: "",
       phone: "",
       notes: "",
@@ -38,11 +37,12 @@ export function OrderForm() {
           template_color: "",
           forefoot_metatarsal: "",
           anterior_wedge: "",
+          anterior_wedge_mm: "",
           midfoot_arch: "",
-          midfoot_external_wedge: "",
           rearfoot_calcaneus: "",
           heel_raise_mm: "",
           posterior_wedge: "",
+          posterior_wedge_mm: "",
         },
       ],
     },
@@ -62,11 +62,12 @@ export function OrderForm() {
       template_color: "",
       forefoot_metatarsal: "",
       anterior_wedge: "",
+      anterior_wedge_mm: "",
       midfoot_arch: "",
-      midfoot_external_wedge: "",
       rearfoot_calcaneus: "",
       heel_raise_mm: "",
       posterior_wedge: "",
+      posterior_wedge_mm: "",
     })
   }
 
@@ -154,25 +155,12 @@ export function OrderForm() {
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
-              name="name"
+              name="company_or_professional"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nombre *</FormLabel>
+                <FormItem className="md:col-span-2">
+                  <FormLabel>Empresa / Profesional *</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ingrese su nombre" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="lastname"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Apellido *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ingrese su apellido" {...field} />
+                    <Input placeholder="Ingrese razón social o nombre" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

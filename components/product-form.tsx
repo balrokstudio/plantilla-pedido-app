@@ -355,10 +355,13 @@ export function ProductForm({ form, index }: ProductFormProps) {
 
   // Mapas de imágenes por opción para cada dropdown adicional
   const FOREFOOT_IMAGE_MAP: Record<string, string[]> = {
-    "Oliva Barra": ["/zonas/Oliva-Barra.png"],
+    // Reutilizamos imagen combinada para opciones separadas si no hay assets específicos
+    "Oliva": ["/zonas/Oliva-Barra.png"],
+    "Barra": ["/zonas/Oliva-Barra.png"],
     "Pad Running": ["/zonas/Pad-Running.png"],
     "Pad Medialuna": ["/zonas/Pad-Medialuna.png"],
     "Valente Valenti": ["/zonas/Valenti-Valenti.png"],
+    "Ninguno": [],
   }
 
   const ANTERIOR_WEDGE_IMAGE_MAP: Record<string, string[]> = {
@@ -372,11 +375,6 @@ export function ProductForm({ form, index }: ProductFormProps) {
     "Arco Látex": ["/zonas/Arco-Latex.png"],
   }
 
-  const MIDFOOT_ARCH_WITH_WEDGE_IMAGE_MAP: Record<string, string[]> = {
-    "Arco Flex": ["/zonas/Arco-Flex-c-cuna.png"],
-    "Arco Semiblando": ["/zonas/Arco-Semiblando-c-cuna.png"],
-    "Arco Látex": ["/zonas/Arco-Latex-c-cuna.png"],
-  }
 
   const REARFOOT_IMAGE_MAP: Record<string, string[]> = {
     "Botón Látex": ["/zonas/Boton-Latex.png"],
@@ -424,10 +422,10 @@ export function ProductForm({ form, index }: ProductFormProps) {
     "48 (31.5 cm)",
   ]
 
-  const FOREFOOT_OPTIONS = ["Oliva Barra", "Pad Running", "Pad Medialuna", "Valente Valenti"]
+  const FOREFOOT_OPTIONS = ["Oliva", "Barra", "Pad Running", "Pad Medialuna", "Valente Valenti", "Ninguno"]
   const ANTERIOR_WEDGE_OPTIONS = ["Cuña Anterior Externa", "Cuña Anterior Interna"]
+  const ANTERIOR_WEDGE_MM_OPTIONS = ["2mm", "3mm"]
   const MIDFOOT_ARCH_OPTIONS = ["Arco Flex", "Arco Semiblando", "Arco Látex"]
-  const MIDFOOT_EXTERNAL_WEDGE_OPTIONS = ["Sí", "No"]
   const REARFOOT_OPTIONS = [
     "Botón Látex",
     "Talonera Descanso Espolón",
@@ -818,7 +816,15 @@ export function ProductForm({ form, index }: ProductFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="font-bold text-gray-600">{config.productLabels?.anterior_wedge || "Cuña Anterior"}</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={(val) => {
+                    field.onChange(val)
+                    if (val !== "Cuña Anterior Interna") {
+                      form.setValue(`products.${index}.anterior_wedge_mm` as any, "")
+                    }
+                  }}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar" />
@@ -842,6 +848,39 @@ export function ProductForm({ form, index }: ProductFormProps) {
                       <ProductImageSlider images={images} alt={alt} />
                     </div>
                   )
+                })()}
+                {/* Espesor (solo si Interna) */}
+                {(() => {
+                  const wedge = form.watch(`products.${index}.anterior_wedge` as const) as string
+                  if (wedge === "Cuña Anterior Interna") {
+                    return (
+                      <FormField
+                        control={form.control}
+                        name={`products.${index}.anterior_wedge_mm` as any}
+                        render={({ field: mmField }) => (
+                          <FormItem className="mt-2">
+                            <FormLabel>Espesor (Cuña Interna)</FormLabel>
+                            <Select onValueChange={mmField.onChange} value={mmField.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Seleccionar espesor" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {ANTERIOR_WEDGE_MM_OPTIONS.map((value) => (
+                                  <SelectItem key={value} value={value}>
+                                    {value}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )
+                  }
+                  return null
                 })()}
                 <FormMessage />
               </FormItem>
@@ -877,7 +916,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
                     <FormLabel>{config.productLabels?.midfoot_arch || "Zona arco"}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full md:w-[391px]">
                           <SelectValue placeholder="Seleccionar" />
                         </SelectTrigger>
                       </FormControl>
@@ -894,38 +933,10 @@ export function ProductForm({ form, index }: ProductFormProps) {
                 )}
               />
             )}
-            {config.productFields.midfoot_external_wedge !== false && (
-              <FormField
-                control={form.control}
-                name={`products.${index}.midfoot_external_wedge` as any}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{config.productLabels?.midfoot_external_wedge || "Cuña Mediopié Externa"}</FormLabel>
-                    <div className="flex items-center gap-4 py-2">
-                      {MIDFOOT_EXTERNAL_WEDGE_OPTIONS.map((opt) => (
-                        <label key={opt} className="flex items-center gap-2">
-                          <input
-                            type="radio"
-                            name={`midfoot_external_wedge_${index}`}
-                            value={opt}
-                            checked={field.value === opt}
-                            onChange={() => field.onChange(opt)}
-                          />
-                          <span>{opt}</span>
-                        </label>
-                      ))}
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-            {/* Slider móvil: debe ir después de Zona arco y Cuña Mediopié Externa */}
+            {/* Slider móvil: debajo de Zona arco */}
             {(() => {
               const selected = form.watch(`products.${index}.midfoot_arch` as const) as string
-              const hasWedge = form.watch(`products.${index}.midfoot_external_wedge` as const) === "Sí"
-              const imageMap = hasWedge ? MIDFOOT_ARCH_WITH_WEDGE_IMAGE_MAP : MIDFOOT_ARCH_IMAGE_MAP
-              const images = imageMap[selected] || []
+              const images = MIDFOOT_ARCH_IMAGE_MAP[selected] || []
               const alt = selected ? `Imagen ${selected}` : "Imagen Mediopié"
               return (
                 <div className="block md:hidden mt-2">
@@ -938,9 +949,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
         {/* Slider desktop */}
         {(() => {
           const selected = form.watch(`products.${index}.midfoot_arch` as const) as string
-          const hasWedge = form.watch(`products.${index}.midfoot_external_wedge` as const) === "Sí"
-          const imageMap = hasWedge ? MIDFOOT_ARCH_WITH_WEDGE_IMAGE_MAP : MIDFOOT_ARCH_IMAGE_MAP
-          const images = imageMap[selected] || []
+          const images = MIDFOOT_ARCH_IMAGE_MAP[selected] || []
           const alt = selected ? `Imagen ${selected}` : "Imagen Mediopié"
           return (
             <div className="hidden md:block">
@@ -984,6 +993,33 @@ export function ProductForm({ form, index }: ProductFormProps) {
                     </div>
                   )
                 })()}
+                {/* Detalle de milímetros para Realce en talón (debajo del selector) */}
+                {config.productFields.heel_raise_mm !== false && rearfootValue === "Realce en talón" && (
+                  <FormField
+                    control={form.control}
+                    name={`products.${index}.heel_raise_mm` as any}
+                    render={({ field }) => (
+                      <FormItem className="mt-2">
+                        <FormLabel>{config.productLabels?.heel_raise_mm || "Detalle de milímetros para Realce en talón"}</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Seleccione milímetros" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {HEEL_RAISE_MM_OPTIONS.map((value) => (
+                              <SelectItem key={value} value={value}>
+                                {value}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
                 <FormMessage />
               </FormItem>
             )}
@@ -1002,33 +1038,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
         </div>
       )}
 
-      {/* Detalle de milímetros para Realce en talón */}
-      {config.productFields.heel_raise_mm !== false && rearfootValue === "Realce en talón" && (
-        <FormField
-          control={form.control}
-          name={`products.${index}.heel_raise_mm` as any}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{config.productLabels?.heel_raise_mm || "Detalle de milímetros para Realce en talón"}</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccione milímetros" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {HEEL_RAISE_MM_OPTIONS.map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {value}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      )}
+      
 
       {/* Cuña Posterior */}
       {config.productFields.posterior_wedge !== false && (
@@ -1039,7 +1049,14 @@ export function ProductForm({ form, index }: ProductFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="font-bold text-gray-600">{config.productLabels?.posterior_wedge || "Cuña Posterior"}</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={(val) => {
+                    field.onChange(val)
+                    // limpiar espesor al cambiar opción
+                    form.setValue(`products.${index}.posterior_wedge_mm` as any, "")
+                  }}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar" />
@@ -1050,6 +1067,39 @@ export function ProductForm({ form, index }: ProductFormProps) {
                     <SelectItem value="Cuña Posterior Interna">Cuña Posterior Interna</SelectItem>
                   </SelectContent>
                 </Select>
+                {/* Espesor para cuña posterior (ambas opciones) */}
+                {(() => {
+                  const wedge = form.watch(`products.${index}.posterior_wedge` as const) as string
+                  if (wedge === "Cuña Posterior Externa" || wedge === "Cuña Posterior Interna") {
+                    return (
+                      <FormField
+                        control={form.control}
+                        name={`products.${index}.posterior_wedge_mm` as any}
+                        render={({ field: mmField }) => (
+                          <FormItem className="mt-2">
+                            <FormLabel>Espesor (Cuña Posterior)</FormLabel>
+                            <Select onValueChange={mmField.onChange} value={mmField.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Seleccionar espesor" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {["2mm", "3mm"].map((value) => (
+                                  <SelectItem key={value} value={value}>
+                                    {value}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )
+                  }
+                  return null
+                })()}
                 {/* Slider móvil */}
                 {(() => {
                   const selected = form.watch(`products.${index}.posterior_wedge` as const) as string
