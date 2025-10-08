@@ -356,8 +356,8 @@ export function ProductForm({ form, index }: ProductFormProps) {
   // Mapas de imágenes por opción para cada dropdown adicional
   const FOREFOOT_IMAGE_MAP: Record<string, string[]> = {
     // Reutilizamos imagen combinada para opciones separadas si no hay assets específicos
-    "Oliva": ["/zonas/Oliva-Barra.png"],
-    "Barra": ["/zonas/Oliva-Barra.png"],
+    "Oliva": ["/zonas/Oliva.png"],
+    "Barra": ["/zonas/Barra.png"],
     "Pad Running": ["/zonas/Pad-Running.png"],
     "Pad Medialuna": ["/zonas/Pad-Medialuna.png"],
     "Valente Valenti": ["/zonas/Valenti-Valenti.png"],
