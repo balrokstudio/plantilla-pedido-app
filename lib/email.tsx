@@ -250,6 +250,10 @@ function generateAdminEmailTemplate(data: OrderEmailData): string {
         .footer { background: #f1f5f9; padding: 24px; text-align: center; color: #64748b; font-size: 14px; }
         .button { display: inline-block; background: #f59e0b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500; margin: 16px 0; border: 1px solid transparent; }
         .button:hover { background: #f97316; color: #ffffff !important; }
+        .button-green { display: inline-block; background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500; margin: 16px 0; border: 1px solid transparent; }
+        .button-green:hover { background: #059669; color: #ffffff !important; }
+        .button-container { display: table; width: 100%; margin: 16px 0; }
+        .button-cell { display: table-cell; width: 50%; padding: 0 8px; text-align: center; }
         .highlight { color: #f59e0b; font-weight: 600; }
       </style>
     </head>
@@ -310,7 +314,14 @@ function generateAdminEmailTemplate(data: OrderEmailData): string {
             <li>Actualizar el estado del pedido en el sistema</li>
           </ol>
           
-          <a href="${process.env.NEXT_PUBLIC_APP_URL}/admin/orders" class="button" style="color:#ffffff !important; font-weight:500; text-decoration:none !important;">Ver en Panel de Administración</a>
+          <div class="button-container">
+            <div class="button-cell">
+              <a href="https://docs.google.com/spreadsheets/d/1ZoHMTdBBhCkfaAWhfaF6TrW4_VLwbQO-R9VqkFsZeyw/edit?pli=1&gid=934464996#gid=934464996" class="button-green" style="color:#ffffff !important; font-weight:500; text-decoration:none !important;">Ver en Google Sheets</a>
+            </div>
+            <div class="button-cell">
+              <a href="${process.env.NEXT_PUBLIC_APP_URL}/admin/orders" class="button" style="color:#ffffff !important; font-weight:500; text-decoration:none !important;">Ver en Panel de Administración</a>
+            </div>
+          </div>
         </div>
         
         <div class="footer">
