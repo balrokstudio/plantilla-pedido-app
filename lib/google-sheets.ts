@@ -14,6 +14,9 @@ interface OrderSheetData {
   status?: string
   products: Array<{
     productType: string
+    // Datos del paciente por producto
+    patientName?: string
+    patientLastname?: string
     // Legacy (opcionales con el nuevo esquema)
     zoneOption1?: string
     zoneOption2?: string
@@ -28,7 +31,6 @@ interface OrderSheetData {
     forefootMetatarsal?: string
     anteriorWedge?: string
     midfootArch?: string
-    midfootExternalWedge?: string
     rearfootCalcaneus?: string
     heelRaiseMm?: string
   }>
@@ -171,12 +173,13 @@ class GoogleSheetsService {
               "Teléfono",
               // Producto (columna H en adelante)
               "Producto 1 - Tipo",
+              "Producto 1 - Nombre Paciente",
+              "Producto 1 - Apellido Paciente",
               "Producto 1 - Color",
               "Producto 1 - Talle",
               "Producto 1 - Antepié (Metatarsal)",
               "Producto 1 - Cuña Anterior",
               "Producto 1 - Mediopié (Arco)",
-              "Producto 1 - Cuña Mediopié Externa",
               "Producto 1 - Retropié (Calcáneo)",
               "Producto 1 - Realce Talón (mm)",
               "Producto 1 - Cuña Posterior",
@@ -193,12 +196,13 @@ class GoogleSheetsService {
               "Email",
               "Teléfono",
               "Producto 1 - Tipo",
+              "Producto 1 - Nombre Paciente",
+              "Producto 1 - Apellido Paciente",
               "Producto 1 - Color",
               "Producto 1 - Talle",
               "Producto 1 - Antepié (Metatarsal)",
               "Producto 1 - Cuña Anterior",
               "Producto 1 - Mediopié (Arco)",
-              "Producto 1 - Cuña Mediopié Externa",
               "Producto 1 - Retropié (Calcáneo)",
               "Producto 1 - Realce Talón (mm)",
               "Producto 1 - Cuña Posterior",
@@ -292,10 +296,24 @@ class GoogleSheetsService {
 
     const rows: any[][] = []
 
+    // Formatear timestamp en zona horaria de Argentina (UTC-3)
+    const formatTimestamp = () => {
+      const date = new Date()
+      // Convertir a zona horaria de Argentina (America/Argentina/Buenos_Aires)
+      const argDate = new Date(date.toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' }))
+      const year = argDate.getFullYear()
+      const month = String(argDate.getMonth() + 1).padStart(2, '0')
+      const day = String(argDate.getDate()).padStart(2, '0')
+      const hours = String(argDate.getHours()).padStart(2, '0')
+      const minutes = String(argDate.getMinutes()).padStart(2, '0')
+      const seconds = String(argDate.getSeconds()).padStart(2, '0')
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+    }
+
     products.forEach((p, idx) => {
       const baseCols = idx === 0
         ? [
-            new Date().toISOString(), // Timestamp
+            formatTimestamp(), // Timestamp en zona horaria Argentina
             orderData.orderId || '',
             orderData.status || 'pendiente',
             firstName,
@@ -315,12 +333,13 @@ class GoogleSheetsService {
 
       const productCols = [
         p.productType || '',
+        p.patientName || '',
+        p.patientLastname || '',
         p.templateColor || '',
         p.templateSize || '',
         p.forefootMetatarsal || '',
         p.anteriorWedge || '',
         p.midfootArch || '',
-        p.midfootExternalWedge || '',
         p.rearfootCalcaneus || '',
         p.heelRaiseMm || '',
         p.posteriorWedge || '',

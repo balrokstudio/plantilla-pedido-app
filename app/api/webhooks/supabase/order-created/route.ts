@@ -50,7 +50,8 @@ export async function POST(request: NextRequest) {
       .select(
         `id, created_at, name, lastname, email, phone, status, notes,
          product_requests (
-           product_type, zone_option_1, zone_option_2, zone_option_3, zone_option_4, zone_option_5,
+           product_type, patient_name, patient_lastname,
+           zone_option_1, zone_option_2, zone_option_3, zone_option_4, zone_option_5,
            heel_height, posterior_wedge,
            template_color, template_size, forefoot_metatarsal, anterior_wedge,
            midfoot_arch, midfoot_external_wedge, rearfoot_calcaneus, heel_raise_mm
@@ -75,6 +76,8 @@ export async function POST(request: NextRequest) {
       status: order.status || "",
       products: (order.product_requests || []).map((p: any) => ({
         productType: p.product_type,
+        patientName: p.patient_name || "",
+        patientLastname: p.patient_lastname || "",
         zoneOption1: p.zone_option_1,
         zoneOption2: p.zone_option_2,
         zoneOption3: p.zone_option_3,
@@ -87,7 +90,6 @@ export async function POST(request: NextRequest) {
         forefootMetatarsal: p.forefoot_metatarsal || "",
         anteriorWedge: p.anterior_wedge || "",
         midfootArch: p.midfoot_arch || "",
-        midfootExternalWedge: p.midfoot_external_wedge || "",
         rearfootCalcaneus: p.rearfoot_calcaneus || "",
         heelRaiseMm: p.heel_raise_mm || "",
       })),

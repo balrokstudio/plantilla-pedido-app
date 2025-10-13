@@ -168,6 +168,8 @@ export async function POST(request: NextRequest) {
             : product.posterior_wedge || ""
         return ({
         productType: product.product_type,
+        patientName: product.patient_name || "",
+        patientLastname: product.patient_lastname || "",
         posteriorWedge: posteriorWedgeValue,
         // Nuevos campos
         templateColor: product.template_color || "",
@@ -175,7 +177,6 @@ export async function POST(request: NextRequest) {
         forefootMetatarsal: product.forefoot_metatarsal || "",
         anteriorWedge: anteriorWedgeValue,
         midfootArch: product.midfoot_arch || "",
-        midfootExternalWedge: product.midfoot_external_wedge || "",
         rearfootCalcaneus: product.rearfoot_calcaneus || "",
         heelRaiseMm: product.heel_raise_mm || "",
       })
