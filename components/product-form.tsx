@@ -367,12 +367,14 @@ export function ProductForm({ form, index }: ProductFormProps) {
   const ANTERIOR_WEDGE_IMAGE_MAP: Record<string, string[]> = {
     "Cuña Anterior Externa": ["/zonas/Cuna-Anterior-Externa.png"],
     "Cuña Anterior Interna": ["/zonas/Cuna-Anterior-Interna.png"],
+    "Ninguno": [],
   }
 
   const MIDFOOT_ARCH_IMAGE_MAP: Record<string, string[]> = {
     "Arco Flex": ["/zonas/Arco-Flex.png"],
     "Arco Semiblando": ["/zonas/Arco-Semiblando.png"],
     "Arco Látex": ["/zonas/Arco-Latex.png"],
+    "Ninguno": [],
   }
 
 
@@ -380,11 +382,13 @@ export function ProductForm({ form, index }: ProductFormProps) {
     "Botón Látex": ["/zonas/Boton-Latex.png"],
     "Talonera Descanso Espolón": ["/zonas/Talonera-Descanso-Espolon.png"],
     "Realce en talón": ["/zonas/Realce-en-talon.png"],
+    "Ninguno": [],
   }
 
   const POSTERIOR_WEDGE_IMAGE_MAP: Record<string, string[]> = {
     "Cuña Posterior Externa": ["/zonas/Cuna-Posterio-Externa.png"],
     "Cuña Posterior Interna": ["/zonas/Cuna-Posterio-Interna.png"],
+    "Ninguno": [],
   }
 
   const SIZE_OPTIONS = [
@@ -423,13 +427,14 @@ export function ProductForm({ form, index }: ProductFormProps) {
   ]
 
   const FOREFOOT_OPTIONS = ["Oliva", "Barra", "Pad Running", "Pad Medialuna", "Valente Valenti", "Ninguno"]
-  const ANTERIOR_WEDGE_OPTIONS = ["Cuña Anterior Externa", "Cuña Anterior Interna"]
+  const ANTERIOR_WEDGE_OPTIONS = ["Cuña Anterior Externa", "Cuña Anterior Interna", "Ninguno"]
   const ANTERIOR_WEDGE_MM_OPTIONS = ["2mm", "3mm"]
-  const MIDFOOT_ARCH_OPTIONS = ["Arco Flex", "Arco Semiblando", "Arco Látex"]
+  const MIDFOOT_ARCH_OPTIONS = ["Arco Flex", "Arco Semiblando", "Arco Látex", "Ninguno"]
   const REARFOOT_OPTIONS = [
     "Botón Látex",
     "Talonera Descanso Espolón",
     "Realce en talón",
+    "Ninguno",
   ]
   const HEEL_RAISE_MM_OPTIONS = ["3mm", "5mm", "6mm", "8mm", "9mm", "10mm"]
 
@@ -1065,6 +1070,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
                   <SelectContent>
                     <SelectItem value="Cuña Posterior Externa">Cuña Posterior Externa</SelectItem>
                     <SelectItem value="Cuña Posterior Interna">Cuña Posterior Interna</SelectItem>
+                    <SelectItem value="Ninguno">Ninguno</SelectItem>
                   </SelectContent>
                 </Select>
                 {/* Espesor para cuña posterior (ambas opciones) */}
