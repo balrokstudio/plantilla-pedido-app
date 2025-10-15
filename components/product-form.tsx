@@ -1,12 +1,11 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { createPortal } from "react-dom"
 import Image from "next/image"
 import type { UseFormReturn } from "react-hook-form"
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { HelpCircle, Ruler, X } from "lucide-react"
+import { HelpCircle } from "lucide-react"
 import type { OrderFormData } from "@/lib/validations"
 import { Input } from "@/components/ui/input"
 import { useFormConfig } from "@/hooks/use-form-config"
@@ -318,12 +317,6 @@ export function ProductForm({ form, index }: ProductFormProps) {
   const [loading, setLoading] = useState(true)
   const [productsColors, setProductsColors] = useState<Record<string, string[]>>({})
   const { config } = useFormConfig()
-  const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
-  const [sizeGuideTab, setSizeGuideTab] = useState<"men" | "women" | "kids">("men")
-  const menRef = useRef<HTMLDivElement | null>(null)
-  const womenRef = useRef<HTMLDivElement | null>(null)
-  const kidsRef = useRef<HTMLDivElement | null>(null)
 
   // Listas fijas solicitadas por el cliente
   const PLANTILLA_TYPES = [
@@ -335,8 +328,10 @@ export function ProductForm({ form, index }: ProductFormProps) {
     "Plantilla 3D",
     "Mi Marca Sport",
     "Mi Marca Clásica",
-    "Mi Marca 3D",
+    "3D",
     "Sandalia Under Feet",
+    "Clásico",
+    "Sport",
   ]
 
   // Mapeo de imágenes por tipo de plantilla (2 imágenes por producto). Fallback a placeholders.
@@ -349,8 +344,10 @@ export function ProductForm({ form, index }: ProductFormProps) {
     "Plantilla 3D": ["/Underfeet-placeholder.png", "/Underfeet-placeholder.png"],
     "Mi Marca Sport": ["/Underfeet-placeholder.png", "/Underfeet-placeholder.png"],
     "Mi Marca Clásica": ["/Underfeet-placeholder.png", "/Underfeet-placeholder.png"],
-    "Mi Marca 3D": ["/Underfeet-placeholder.png", "/Underfeet-placeholder.png"],
+    "3D": ["/Underfeet-placeholder.png", "/Underfeet-placeholder.png"],
     "Sandalia Under Feet": ["/Underfeet-placeholder.png", "/Underfeet-placeholder.png"],
+    "Clásico": ["/Underfeet-placeholder.png", "/Underfeet-placeholder.png"],
+    "Sport": ["/Underfeet-placeholder.png", "/Underfeet-placeholder.png"],
   }
 
   // Mapas de imágenes por opción para cada dropdown adicional
@@ -372,7 +369,9 @@ export function ProductForm({ form, index }: ProductFormProps) {
 
   const MIDFOOT_ARCH_IMAGE_MAP: Record<string, string[]> = {
     "Arco Flex": ["/zonas/Arco-Flex.png"],
+    "Arco Flex Reforzado": ["/zonas/Arco-Flex.png"],
     "Arco Semiblando": ["/zonas/Arco-Semiblando.png"],
+    "Arco Semiblando Solapa": ["/zonas/Arco-Semiblando.png"],
     "Arco Látex": ["/zonas/Arco-Latex.png"],
     "Ninguno": [],
   }
@@ -382,6 +381,8 @@ export function ProductForm({ form, index }: ProductFormProps) {
     "Botón Látex": ["/zonas/Boton-Latex.png"],
     "Talonera Descanso Espolón": ["/zonas/Talonera-Descanso-Espolon.png"],
     "Realce en talón": ["/zonas/Realce-en-talon.png"],
+    "Talonera Descanso Completa 5mm": ["/zonas/Realce-en-talon.png"],
+    "Talonera Descanso Completa Alta 10mm": ["/zonas/Realce-en-talon.png"],
     "Ninguno": [],
   }
 
@@ -429,11 +430,13 @@ export function ProductForm({ form, index }: ProductFormProps) {
   const FOREFOOT_OPTIONS = ["Oliva", "Barra", "Pad Running", "Pad Medialuna", "Valente Valenti", "Ninguno"]
   const ANTERIOR_WEDGE_OPTIONS = ["Cuña Anterior Externa", "Cuña Anterior Interna", "Ninguno"]
   const ANTERIOR_WEDGE_MM_OPTIONS = ["2mm", "3mm"]
-  const MIDFOOT_ARCH_OPTIONS = ["Arco Flex", "Arco Semiblando", "Arco Látex", "Ninguno"]
+  const MIDFOOT_ARCH_OPTIONS = ["Arco Flex", "Arco Flex Reforzado", "Arco Semiblando", "Arco Semiblando Solapa", "Arco Látex", "Ninguno"]
   const REARFOOT_OPTIONS = [
     "Botón Látex",
     "Talonera Descanso Espolón",
     "Realce en talón",
+    "Talonera Descanso Completa 5mm",
+    "Talonera Descanso Completa Alta 10mm",
     "Ninguno",
   ]
   const HEEL_RAISE_MM_OPTIONS = ["3mm", "5mm", "6mm", "8mm", "9mm", "10mm"]
@@ -513,55 +516,6 @@ export function ProductForm({ form, index }: ProductFormProps) {
     init()
   }, [])
 
-  // Cerrar modal con tecla Escape
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setIsSizeGuideOpen(false)
-    }
-    if (isSizeGuideOpen) {
-      window.addEventListener("keydown", onKey)
-    }
-    return () => window.removeEventListener("keydown", onKey)
-  }, [isSizeGuideOpen])
-
-  // Mount guard for portals and body scroll lock
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-  useEffect(() => {
-    if (!mounted) return
-    const originalOverflow = document.body.style.overflow
-    if (isSizeGuideOpen) {
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = originalOverflow || ""
-    }
-    return () => {
-      document.body.style.overflow = originalOverflow || ""
-    }
-  }, [isSizeGuideOpen, mounted])
-
-  // Persistir/recuperar última pestaña (filtro)
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("sizeGuideTab") as typeof sizeGuideTab | null
-      if (saved === "men" || saved === "women" || saved === "kids") {
-        setSizeGuideTab(saved)
-      }
-    } catch {}
-  }, [])
-  useEffect(() => {
-    try {
-      localStorage.setItem("sizeGuideTab", sizeGuideTab)
-    } catch {}
-  }, [sizeGuideTab])
-
-  const scrollToSection = (key: typeof sizeGuideTab) => {
-    const target = key === "men" ? menRef.current : key === "women" ? womenRef.current : kidsRef.current
-    if (target) {
-      target.scrollIntoView({ behavior: "smooth", block: "start" })
-    }
-  }
 
   const rearfootValue = form.watch(`products.${index}.rearfoot_calcaneus` as const)
 
@@ -671,19 +625,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="mb-1 min-h-[24px] flex items-center">
-                    <div className="flex items-center gap-2">
-                      <span>{config.productLabels?.template_size || "Selección de talle"}</span>
-                      <button
-                        type="button"
-                        onClick={() => setIsSizeGuideOpen(true)}
-                        title="Ver guía de talles"
-                        aria-haspopup="dialog"
-                        className="inline-flex items-center text-blue-600 hover:text-blue-700"
-                      >
-                        <Ruler className="h-4 w-4" />
-                        <span className="ml-1 text-xs md:text-sm">Ver guía de Talles</span>
-                      </button>
-                    </div>
+                    <span>{config.productLabels?.template_size || "Selección de talle"}</span>
                   </FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
@@ -714,7 +656,17 @@ export function ProductForm({ form, index }: ProductFormProps) {
               render={({ field }) => {
                 const selectedType = form.watch(`products.${index}.product_type` as const) as string
                 const colors = (productsColors?.[selectedType] || []) as string[]
-                const show = Array.isArray(colors) && colors.length > 0
+                
+                // Auto-seleccionar Habano para Mi Marca Sport y Mi Marca Clásica
+                const autoSelectTypes = ["Mi Marca Sport", "Mi Marca Clásica"]
+                if (autoSelectTypes.includes(selectedType) && field.value !== "Habano") {
+                  field.onChange("Habano")
+                }
+                
+                // Mostrar dropdown solo si hay más de 1 color
+                const show = Array.isArray(colors) && colors.length > 1
+                const hasColors = Array.isArray(colors) && colors.length > 0
+                
                 return (
                   <FormItem>
                     <FormLabel className="mb-1 min-h-[24px] flex items-center">{config.productLabels?.template_color || "Color"}</FormLabel>
@@ -733,6 +685,10 @@ export function ProductForm({ form, index }: ProductFormProps) {
                           ))}
                         </SelectContent>
                       </Select>
+                    ) : hasColors && colors.length === 1 ? (
+                      <div className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+                        {colors[0]}
+                      </div>
                     ) : (
                       <div className="text-sm text-gray-500">Este producto no posee variantes de color</div>
                     )}
@@ -1091,7 +1047,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {["2mm", "3mm"].map((value) => (
+                                {["2mm", "3mm", "5mm"].map((value) => (
                                   <SelectItem key={value} value={value}>
                                     {value}
                                   </SelectItem>
@@ -1135,138 +1091,6 @@ export function ProductForm({ form, index }: ProductFormProps) {
         </div>
       )}
 
-      {/* Modal guía de talles (portal a body para centrar en viewport) */}
-      {mounted && isSizeGuideOpen && createPortal(
-        (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div
-              className="absolute inset-0 bg-black/60"
-              onClick={() => setIsSizeGuideOpen(false)}
-            />
-            <div
-              role="dialog"
-              aria-modal="true"
-              aria-label="Guía de talles"
-              className="relative z-10 bg-white dark:bg-neutral-900 rounded-md shadow-lg max-w-4xl w-full max-h-[90vh] flex flex-col"
-            >
-              <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 dark:border-gray-800 sticky top-0 bg-white/95 dark:bg-neutral-900/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 supports-[backdrop-filter]:dark:bg-neutral-900/60 z-10">
-                <h3 className="text-sm font-medium">Guía de talles</h3>
-                <button
-                  type="button"
-                  onClick={() => setIsSizeGuideOpen(false)}
-                  className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
-                  aria-label="Cerrar"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-              <div className="relative w-full flex-1 min-h-0 overflow-y-auto p-3">
-                {/* Filtro en mobile (manteniendo vista apilada) */}
-                <div className="mb-3 md:hidden">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-600 dark:text-gray-300">Ir a:</span>
-                    <div className="min-w-[160px]">
-                      <select
-                        className="w-full rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-neutral-800 text-xs px-2 py-2"
-                        value={sizeGuideTab}
-                        onChange={(e) => {
-                          const k = e.target.value as typeof sizeGuideTab
-                          setSizeGuideTab(k)
-                          // dar tiempo a layout antes de scroll suave
-                          requestAnimationFrame(() => scrollToSection(k))
-                        }}
-                      >
-                        <option value="men">Hombre</option>
-                        <option value="women">Mujer</option>
-                        <option value="kids">Niños</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Vista apilada para todas las pantallas */}
-                <div className="block">
-                  {/* HOMBRE */}
-                  <section ref={menRef} className="mb-6 scroll-mt-16">
-                    <h4 className="text-sm font-semibold mb-2">Hombre</h4>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs md:text-sm">
-                        <thead>
-                          <tr className="text-left bg-gray-50 dark:bg-gray-800">
-                            <th className="px-2 py-2 font-medium">Talle U.S.</th>
-                            <th className="px-2 py-2 font-medium">Talle ARG</th>
-                            <th className="px-2 py-2 font-medium">Largo del pie (cm)</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {SIZE_GUIDE.men.map((r, i) => (
-                            <tr key={`men-${i}`} className={i % 2 ? "bg-white/40 dark:bg-white/5" : ""}>
-                              <td className="px-2 py-1">{r.us}</td>
-                              <td className="px-2 py-1">{r.arg}</td>
-                              <td className="px-2 py-1">{r.cm}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </section>
-
-                  {/* MUJER */}
-                  <section ref={womenRef} className="mb-6 scroll-mt-16">
-                    <h4 className="text-sm font-semibold mb-2">Mujer</h4>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs md:text-sm">
-                        <thead>
-                          <tr className="text-left bg-gray-50 dark:bg-gray-800">
-                            <th className="px-2 py-2 font-medium">Talle U.S.</th>
-                            <th className="px-2 py-2 font-medium">Talle ARG</th>
-                            <th className="px-2 py-2 font-medium">Largo del pie (cm)</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {SIZE_GUIDE.women.map((r, i) => (
-                            <tr key={`women-${i}`} className={i % 2 ? "bg-white/40 dark:bg-white/5" : ""}>
-                              <td className="px-2 py-1">{r.us}</td>
-                              <td className="px-2 py-1">{r.arg}</td>
-                              <td className="px-2 py-1">{r.cm}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </section>
-
-                  {/* NIÑOS */}
-                  <section ref={kidsRef} className="scroll-mt-16">
-                    <h4 className="text-sm font-semibold mb-2">Niños</h4>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs md:text-sm">
-                        <thead>
-                          <tr className="text-left bg-gray-50 dark:bg-gray-800">
-                            <th className="px-2 py-2 font-medium">Talle U.S.</th>
-                            <th className="px-2 py-2 font-medium">Talle ARG</th>
-                            <th className="px-2 py-2 font-medium">Largo del pie (cm)</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {SIZE_GUIDE.kids.map((r, i) => (
-                            <tr key={`kids-${i}`} className={i % 2 ? "bg-white/40 dark:bg-white/5" : ""}>
-                              <td className="px-2 py-1">{r.us}</td>
-                              <td className="px-2 py-1">{r.arg}</td>
-                              <td className="px-2 py-1">{r.cm}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </section>
-                </div>
-              </div>
-            </div>
-          </div>
-        ),
-        document.body
-      )}
     </div>
   )
 }

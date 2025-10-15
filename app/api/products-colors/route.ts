@@ -1,31 +1,21 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
-const DEFAULT_TYPES = [
-  "Every Day",
-  "3/4",
-  "Cross Trainer",
-  "Botín",
-  "Junior",
-  "Plantilla 3D",
-  "Mi Marca Sport",
-  "Mi Marca Clásica",
-  "Mi Marca 3D",
-  "Sandalia Under Feet",
-]
-
-const DEFAULT_COLORS = [
-  "Negro",
-  "Marrón",
-  "Beige",
-  "Azul",
-  "Gris",
-  "Blanco",
-  "Rojo",
-  "Verde",
-  "Bordó",
-  "Arena",
-]
+// Configuración de colores por tipo de plantilla
+const PRODUCTS_COLORS: Record<string, string[]> = {
+  "Clásico": ["Habano", "Fucsia"],
+  "Sport": ["Gris", "Azul", "Violeta", "Fucsia"],
+  "Junior": ["Azul", "Fucsia"],
+  "Cross Trainer": ["Gris", "Azul"],
+  "Botín": ["Gris", "Azul", "Violeta", "Fucsia"],
+  "Every Day": ["Habano", "Plastazote Crema"], // Médica
+  "3/4": ["Habano", "Gris"],
+  "Mi Marca Sport": ["Habano"], // Automático, sin opción
+  "Mi Marca Clásica": ["Habano"], // Automático, sin opción
+  "3D": ["Rojo", "Azul", "Menta", "Lavanda"],
+  "Sandalia Under Feet": [], // Sin colores
+  "Plantilla 3D": [], // Sin especificar, sin colores por defecto
+}
 
 // Public GET: returns products_colors mapping from app_settings, completing with defaults
 export async function GET() {
@@ -43,9 +33,11 @@ export async function GET() {
 
     const stored = ((data?.value as any) || {}) as Record<string, string[]>
     const merged: Record<string, string[]> = {}
-    for (const t of DEFAULT_TYPES) {
-      const existing = Array.isArray(stored[t]) ? stored[t] : []
-      merged[t] = existing.length > 0 ? existing : DEFAULT_COLORS
+    
+    // Usar configuración almacenada o valores por defecto
+    for (const [productType, defaultColors] of Object.entries(PRODUCTS_COLORS)) {
+      const existing = Array.isArray(stored[productType]) ? stored[productType] : []
+      merged[productType] = existing.length > 0 ? existing : defaultColors
     }
 
     return NextResponse.json({ success: true, data: merged })
