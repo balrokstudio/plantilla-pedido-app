@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Plus, Trash2, CheckCircle } from "lucide-react"
 import { ProductForm } from "@/components/product-form"
+import { FormProgressBar } from "@/components/form-progress-bar"
 import { orderFormSchema, type OrderFormData } from "@/lib/validations"
 import { useToast } from "@/hooks/use-toast"
 import { useFieldArray } from "react-hook-form"
@@ -142,6 +143,9 @@ export function OrderForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        {/* Progress Bar */}
+        <FormProgressBar form={form} />
+        
         {/* Customer Information */}
         <Card>
           <CardHeader>
