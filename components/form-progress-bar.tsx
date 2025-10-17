@@ -41,64 +41,109 @@ export function FormProgressBar({ form }: FormProgressBarProps) {
       totalFields += 5
       completedFields += requiredProductFields.filter(field => field && field.trim() !== "").length
 
-      // Standard optional fields without conditional dependencies (2)
-      const standardOptionalFields = [
-        product.forefoot_metatarsal,
-        product.midfoot_arch,
-      ]
-      
+      // Antepié - Zona metatarsal (2 fields: left and right)
       totalFields += 2
-      completedFields += standardOptionalFields.filter(field => field && field.trim() !== "").length
+      if (product.forefoot_metatarsal_left && product.forefoot_metatarsal_left.trim() !== "") {
+        completedFields += 1
+      }
+      if (product.forefoot_metatarsal && product.forefoot_metatarsal.trim() !== "") {
+        completedFields += 1
+      }
 
-      // Cuña Anterior - conditional logic
+      // Cuña Anterior - conditional logic for LEFT foot
+      totalFields += 1
+      const anteriorWedgeLeftValue = product.anterior_wedge_left
+      if (anteriorWedgeLeftValue && anteriorWedgeLeftValue.trim() !== "") {
+        if (anteriorWedgeLeftValue === "Cuña Anterior Interna") {
+          const anteriorWedgeLeftMm = product.anterior_wedge_left_mm
+          if (anteriorWedgeLeftMm && anteriorWedgeLeftMm.trim() !== "") {
+            completedFields += 1
+          }
+        } else {
+          completedFields += 1
+        }
+      }
+
+      // Cuña Anterior - conditional logic for RIGHT foot
       totalFields += 1
       const anteriorWedgeValue = product.anterior_wedge
       if (anteriorWedgeValue && anteriorWedgeValue.trim() !== "") {
-        // If "Cuña Anterior Interna" is selected, also need anterior_wedge_mm
         if (anteriorWedgeValue === "Cuña Anterior Interna") {
           const anteriorWedgeMm = product.anterior_wedge_mm
           if (anteriorWedgeMm && anteriorWedgeMm.trim() !== "") {
             completedFields += 1
           }
         } else {
-          // Any other option counts as complete
           completedFields += 1
         }
       }
 
-      // Rearfoot calcaneus - conditional logic
+      // Mediopié - Zona arco (2 fields: left and right)
+      totalFields += 2
+      if (product.midfoot_arch_left && product.midfoot_arch_left.trim() !== "") {
+        completedFields += 1
+      }
+      if (product.midfoot_arch && product.midfoot_arch.trim() !== "") {
+        completedFields += 1
+      }
+
+      // Retropié - Zona calcáneo - conditional logic for LEFT foot
+      totalFields += 1
+      const rearfootLeftValue = product.rearfoot_calcaneus_left
+      if (rearfootLeftValue && rearfootLeftValue.trim() !== "") {
+        if (rearfootLeftValue === "Realce en talón") {
+          const heelRaiseLeftMm = product.heel_raise_left_mm
+          if (heelRaiseLeftMm && heelRaiseLeftMm.trim() !== "") {
+            completedFields += 1
+          }
+        } else {
+          completedFields += 1
+        }
+      }
+
+      // Retropié - Zona calcáneo - conditional logic for RIGHT foot
       totalFields += 1
       const rearfootValue = product.rearfoot_calcaneus
       if (rearfootValue && rearfootValue.trim() !== "") {
-        // If "Realce en talón" is selected, also need heel_raise_mm
         if (rearfootValue === "Realce en talón") {
           const heelRaiseMm = product.heel_raise_mm
           if (heelRaiseMm && heelRaiseMm.trim() !== "") {
             completedFields += 1
           }
         } else {
-          // Any other option counts as complete
           completedFields += 1
         }
       }
 
-      // Cuña Posterior - conditional logic
+      // Cuña Posterior - conditional logic for LEFT foot
+      totalFields += 1
+      const posteriorWedgeLeftValue = product.posterior_wedge_left
+      if (posteriorWedgeLeftValue && posteriorWedgeLeftValue.trim() !== "") {
+        if (posteriorWedgeLeftValue === "Cuña Posterior Externa" || posteriorWedgeLeftValue === "Cuña Posterior Interna") {
+          const posteriorWedgeLeftMm = product.posterior_wedge_left_mm
+          if (posteriorWedgeLeftMm && posteriorWedgeLeftMm.trim() !== "") {
+            completedFields += 1
+          }
+        } else {
+          completedFields += 1
+        }
+      }
+
+      // Cuña Posterior - conditional logic for RIGHT foot
       totalFields += 1
       const posteriorWedgeValue = product.posterior_wedge
       if (posteriorWedgeValue && posteriorWedgeValue.trim() !== "") {
-        // If "Cuña Posterior Externa" or "Cuña Posterior Interna" is selected, also need posterior_wedge_mm
         if (posteriorWedgeValue === "Cuña Posterior Externa" || posteriorWedgeValue === "Cuña Posterior Interna") {
           const posteriorWedgeMm = product.posterior_wedge_mm
           if (posteriorWedgeMm && posteriorWedgeMm.trim() !== "") {
             completedFields += 1
           }
         } else {
-          // "Ninguno" counts as complete
           completedFields += 1
         }
       }
 
-      // anterior_wedge_mm, heel_raise_mm, and posterior_wedge_mm are only counted as part of their parent field completion
+      // All mm fields are only counted as part of their parent field completion
     })
 
     // Notes are NOT counted for progress bar completion

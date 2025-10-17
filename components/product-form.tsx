@@ -5,10 +5,11 @@ import Image from "next/image"
 import type { UseFormReturn } from "react-hook-form"
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { HelpCircle } from "lucide-react"
+import { HelpCircle, AlertTriangle } from "lucide-react"
 import type { OrderFormData } from "@/lib/validations"
 import { Input } from "@/components/ui/input"
 import { useFormConfig } from "@/hooks/use-form-config"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 // Slider simple de imágenes para Tipo Plantilla (ratio 1.1:1)
 function ProductTypeImageSlider({ images, alt }: { images: string[]; alt: string }) {
@@ -351,46 +352,97 @@ export function ProductForm({ form, index }: ProductFormProps) {
   }
 
   // Mapas de imágenes por opción para cada dropdown adicional
-  const FOREFOOT_IMAGE_MAP: Record<string, string[]> = {
-    // Reutilizamos imagen combinada para opciones separadas si no hay assets específicos
-    "Oliva": ["/zonas/Oliva.png"],
-    "Barra": ["/zonas/Barra.png"],
-    "Pad Running": ["/zonas/Pad-Running.png"],
-    "Pad Medialuna": ["/zonas/Pad-Medialuna.png"],
-    "Valente Valenti": ["/zonas/Valenti-Valenti.png"],
+  // Pie derecho (imágenes originales)
+  const FOREFOOT_IMAGE_MAP_RIGHT: Record<string, string[]> = {
+    "Oliva": ["/zonas/Derecho/Oliva.png"],
+    "Barra": ["/zonas/Derecho/Barra.png"],
+    "Pad Running": ["/zonas/Derecho/Pad-Running.png"],
+    "Pad Medialuna": ["/zonas/Derecho/Pad-Medialuna.png"],
+    "Valente Valenti": ["/zonas/Derecho/Valenti-Valenti.png"],
     "Ninguno": [],
   }
 
-  const ANTERIOR_WEDGE_IMAGE_MAP: Record<string, string[]> = {
-    "Cuña Anterior Externa": ["/zonas/Cuna-Anterior-Externa.png"],
-    "Cuña Anterior Interna": ["/zonas/Cuna-Anterior-Interna.png"],
+  // Pie izquierdo (imágenes pre-rotadas)
+  const FOREFOOT_IMAGE_MAP_LEFT: Record<string, string[]> = {
+    "Oliva": ["/zonas/Izquierdo/Oliva-Izq.png"],
+    "Barra": ["/zonas/Izquierdo/Barra-Izq.png"],
+    "Pad Running": ["/zonas/Izquierdo/Pad-Running-Izq.png"],
+    "Pad Medialuna": ["/zonas/Izquierdo/Pad-Medialuna-Izq.png"],
+    "Valente Valenti": ["/zonas/Izquierdo/Valenti-Valenti-Izq.png"],
     "Ninguno": [],
   }
 
-  const MIDFOOT_ARCH_IMAGE_MAP: Record<string, string[]> = {
-    "Arco Flex": ["/zonas/Arco-Flex.png"],
-    "Arco Flex Reforzado": ["/zonas/Arco-Flex.png"],
-    "Arco Semiblando": ["/zonas/Arco-Semiblando.png"],
-    "Arco Semiblando Solapa": ["/zonas/Arco-Semiblando.png"],
-    "Arco Látex": ["/zonas/Arco-Latex.png"],
+  // Mantener compatibilidad con código existente
+  const FOREFOOT_IMAGE_MAP = FOREFOOT_IMAGE_MAP_RIGHT
+
+  const ANTERIOR_WEDGE_IMAGE_MAP_RIGHT: Record<string, string[]> = {
+    "Cuña Anterior Externa": ["/zonas/Derecho/Cuna-Anterior-Externa.png"],
+    "Cuña Anterior Interna": ["/zonas/Derecho/Cuna-Anterior-Interna.png"],
     "Ninguno": [],
   }
 
-
-  const REARFOOT_IMAGE_MAP: Record<string, string[]> = {
-    "Botón Látex": ["/zonas/Boton-Latex.png"],
-    "Talonera Descanso Espolón": ["/zonas/Talonera-Descanso-Espolon.png"],
-    "Realce en talón": ["/zonas/Realce-en-talon.png"],
-    "Talonera Descanso Completa 5mm": ["/zonas/Realce-en-talon.png"],
-    "Talonera Descanso Completa Alta 10mm": ["/zonas/Realce-en-talon.png"],
+  const ANTERIOR_WEDGE_IMAGE_MAP_LEFT: Record<string, string[]> = {
+    "Cuña Anterior Externa": ["/zonas/Izquierdo/Cuna-Anterior-Externa-Izq.png"],
+    "Cuña Anterior Interna": ["/zonas/Izquierdo/Cuna-Anterior-Interna-Izq.png"],
     "Ninguno": [],
   }
 
-  const POSTERIOR_WEDGE_IMAGE_MAP: Record<string, string[]> = {
-    "Cuña Posterior Externa": ["/zonas/Cuna-Posterio-Externa.png"],
-    "Cuña Posterior Interna": ["/zonas/Cuna-Posterio-Interna.png"],
+  const ANTERIOR_WEDGE_IMAGE_MAP = ANTERIOR_WEDGE_IMAGE_MAP_RIGHT
+
+  const MIDFOOT_ARCH_IMAGE_MAP_RIGHT: Record<string, string[]> = {
+    "Arco Flex": ["/zonas/Derecho/Arco-Flex.png"],
+    "Arco Flex Reforzado": ["/zonas/Derecho/Arco-Flex.png"],
+    "Arco Semiblando": ["/zonas/Derecho/Arco-Semiblando.png"],
+    "Arco Semiblando Solapa": ["/zonas/Derecho/Arco-Semiblando.png"],
+    "Arco Látex": ["/zonas/Derecho/Arco-Latex.png"],
     "Ninguno": [],
   }
+
+  const MIDFOOT_ARCH_IMAGE_MAP_LEFT: Record<string, string[]> = {
+    "Arco Flex": ["/zonas/Izquierdo/Arco-Flex-Izq.png"],
+    "Arco Flex Reforzado": ["/zonas/Izquierdo/Arco-Flex-Izq.png"],
+    "Arco Semiblando": ["/zonas/Izquierdo/Arco-Semiblando-Izq.png"],
+    "Arco Semiblando Solapa": ["/zonas/Izquierdo/Arco-Semiblando-Izq.png"],
+    "Arco Látex": ["/zonas/Izquierdo/Arco-Latex-Izq.png"],
+    "Ninguno": [],
+  }
+
+  const MIDFOOT_ARCH_IMAGE_MAP = MIDFOOT_ARCH_IMAGE_MAP_RIGHT
+
+
+  const REARFOOT_IMAGE_MAP_RIGHT: Record<string, string[]> = {
+    "Botón Látex": ["/zonas/Derecho/Boton-Latex.png"],
+    "Talonera Descanso Espolón": ["/zonas/Derecho/Talonera-Descanso-Espolon.png"],
+    "Realce en talón": ["/zonas/Derecho/Realce-en-talon.png"],
+    "Talonera Descanso Completa 5mm": ["/zonas/Derecho/Realce-en-talon.png"],
+    "Talonera Descanso Completa Alta 10mm": ["/zonas/Derecho/Realce-en-talon.png"],
+    "Ninguno": [],
+  }
+
+  const REARFOOT_IMAGE_MAP_LEFT: Record<string, string[]> = {
+    "Botón Látex": ["/zonas/Izquierdo/Boton-Latex-Izq.png"],
+    "Talonera Descanso Espolón": ["/zonas/Izquierdo/Talonera-Descanso-Espolon-Izq.png"],
+    "Realce en talón": ["/zonas/Izquierdo/Realce-en-talon-Izq.png"],
+    "Talonera Descanso Completa 5mm": ["/zonas/Izquierdo/Realce-en-talon-Izq.png"],
+    "Talonera Descanso Completa Alta 10mm": ["/zonas/Izquierdo/Realce-en-talon-Izq.png"],
+    "Ninguno": [],
+  }
+
+  const REARFOOT_IMAGE_MAP = REARFOOT_IMAGE_MAP_RIGHT
+
+  const POSTERIOR_WEDGE_IMAGE_MAP_RIGHT: Record<string, string[]> = {
+    "Cuña Posterior Externa": ["/zonas/Derecho/Cuna-Posterio-Externa.png"],
+    "Cuña Posterior Interna": ["/zonas/Derecho/Cuna-Posterio-Interna.png"],
+    "Ninguno": [],
+  }
+
+  const POSTERIOR_WEDGE_IMAGE_MAP_LEFT: Record<string, string[]> = {
+    "Cuña Posterior Externa": ["/zonas/Izquierdo/Cuna-Posterio-Externa-Izq.png"],
+    "Cuña Posterior Interna": ["/zonas/Izquierdo/Cuna-Posterio-Interna-Izq.png"],
+    "Ninguno": [],
+  }
+
+  const POSTERIOR_WEDGE_IMAGE_MAP = POSTERIOR_WEDGE_IMAGE_MAP_RIGHT
 
   const SIZE_OPTIONS = [
     "21 (14,5 cm)",
@@ -671,7 +723,7 @@ export function ProductForm({ form, index }: ProductFormProps) {
                   <FormItem>
                     <FormLabel className="mb-1 min-h-[24px] flex items-center">{config.productLabels?.template_color || "Color"}</FormLabel>
                     {show ? (
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Seleccione color" />
@@ -719,372 +771,974 @@ export function ProductForm({ form, index }: ProductFormProps) {
       {/* Antepié - Zona metatarsal */}
       {config.productFields.forefoot_metatarsal !== false && (
         <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-          <FormField
-            control={form.control}
-            name={`products.${index}.forefoot_metatarsal` as any}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="font-bold text-gray-600">{config.productLabels?.forefoot_metatarsal || "Antepié - Zona metatarsal"}</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar"/>
-                    </SelectTrigger>  
-                  </FormControl>
-                  <SelectContent>
-                    {FOREFOOT_OPTIONS.map((value) => (
-                      <SelectItem key={value} value={value}>
-                        {value}
+          <div className="space-y-2">
+            {/* Título de sección */}
+            <div className="mb-2">
+              <h5 className="text-sm font-bold text-gray-600 dark:text-gray-300">{config.productLabels?.forefoot_metatarsal || "Antepié — Zona metatarsal"}</h5>
+            </div>
+            
+            {/* Dropdown para pie izquierdo */}
+            <FormField
+              control={form.control}
+              name={`products.${index}.forefoot_metatarsal_left` as any}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[0.75rem] text-blue-600 font-semibold">Pie Izquierdo</FormLabel>
+                  <Select 
+                    onValueChange={(val) => {
+                      field.onChange(val)
+                    }} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar"/>
+                      </SelectTrigger>  
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Igual a Pie Derecho" className="text-green-600 font-semibold">
+                        → Igual a Pie Derecho
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {/* Slider móvil debajo del campo */}
-                {(() => {
-                  const selected = form.watch(`products.${index}.forefoot_metatarsal` as const) as string
-                  const images = FOREFOOT_IMAGE_MAP[selected] || []
-                  const alt = selected ? `Imagen ${selected}` : "Imagen Antepié"
-                  return (
-                    <div className="block md:hidden mt-2">
-                      <ProductImageSlider images={images} alt={alt} />
-                    </div>
-                  )
-                })()}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {/* Slider a la derecha en desktop */}
-          {(() => {
-            const selected = form.watch(`products.${index}.forefoot_metatarsal` as const) as string
-            const images = FOREFOOT_IMAGE_MAP[selected] || []
-            const alt = selected ? `Imagen ${selected}` : "Imagen Antepié"
-            return (
-              <div className="hidden md:block">
-                <ProductImageSlider images={images} alt={alt} />
-              </div>
-            )
-          })()}
-        </div>
-      )}
-
-      {/* Cuña Anterior */}
-      {config.productFields.anterior_wedge !== false && (
-        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-start ">
-          <FormField
-            control={form.control}
-            name={`products.${index}.anterior_wedge` as any}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="font-bold text-gray-600">{config.productLabels?.anterior_wedge || "Cuña Anterior"}</FormLabel>
-                <Select
-                  onValueChange={(val) => {
-                    field.onChange(val)
-                    if (val !== "Cuña Anterior Interna") {
-                      form.setValue(`products.${index}.anterior_wedge_mm` as any, "")
-                    }
-                  }}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {ANTERIOR_WEDGE_OPTIONS.map((value) => (
-                      <SelectItem key={value} value={value}>
-                        {value}
+                      {FOREFOOT_OPTIONS.map((value) => (
+                        <SelectItem key={value} value={value}>
+                          {value}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Dropdown para pie derecho */}
+            <FormField
+              control={form.control}
+              name={`products.${index}.forefoot_metatarsal` as any}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[0.75rem] text-green-600 font-semibold">Pie Derecho</FormLabel>
+                  <Select 
+                    onValueChange={(val) => {
+                      field.onChange(val)
+                    }} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar"/>
+                      </SelectTrigger>  
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Igual a Pie Izquierdo" className="text-blue-600 font-semibold">
+                        ← Igual a Pie Izquierdo
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {/* Slider móvil */}
-                {(() => {
-                  const selected = form.watch(`products.${index}.anterior_wedge` as const) as string
-                  const images = ANTERIOR_WEDGE_IMAGE_MAP[selected] || []
-                  const alt = selected ? `Imagen ${selected}` : "Imagen Cuña Anterior"
-                  return (
-                    <div className="block md:hidden mt-2">
-                      <ProductImageSlider images={images} alt={alt} />
-                    </div>
-                  )
-                })()}
-                {/* Espesor (solo si Interna) */}
-                {(() => {
-                  const wedge = form.watch(`products.${index}.anterior_wedge` as const) as string
-                  if (wedge === "Cuña Anterior Interna") {
-                    return (
-                      <FormField
-                        control={form.control}
-                        name={`products.${index}.anterior_wedge_mm` as any}
-                        render={({ field: mmField }) => (
-                          <FormItem className="mt-2">
-                            <FormLabel>Espesor (Cuña Interna)</FormLabel>
-                            <Select onValueChange={mmField.onChange} value={mmField.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Seleccionar espesor" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {ANTERIOR_WEDGE_MM_OPTIONS.map((value) => (
-                                  <SelectItem key={value} value={value}>
-                                    {value}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )
-                  }
-                  return null
-                })()}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {/* Slider desktop */}
-          {(() => {
-            const selected = form.watch(`products.${index}.anterior_wedge` as const) as string
-            const images = ANTERIOR_WEDGE_IMAGE_MAP[selected] || []
-            const alt = selected ? `Imagen ${selected}` : "Imagen Cuña Anterior"
-            return (
-              <div className="hidden md:block">
-                <ProductImageSlider images={images} alt={alt} />
-              </div>
-            )
-          })()}
-        </div>
-      )}
-
-      {/* Mediopié - Zona arco */}
-      <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-        <div>
-          <div className="mb-4">
-            <h5 className="text-sm font-bold text-gray-600 dark:text-gray-300">Mediopié - Zona arco</h5>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {config.productFields.midfoot_arch !== false && (
-              <FormField
-                control={form.control}
-                name={`products.${index}.midfoot_arch` as any}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{config.productLabels?.midfoot_arch || "Zona arco"}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="w-full md:w-[391px]">
-                          <SelectValue placeholder="Seleccionar" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {MIDFOOT_ARCH_OPTIONS.map((value) => (
-                          <SelectItem key={value} value={value}>
-                            {value}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-            {/* Slider móvil: debajo de Zona arco */}
+                      {FOREFOOT_OPTIONS.map((value) => (
+                        <SelectItem key={value} value={value}>
+                          {value}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Alerta de validación para Antepié - Zona metatarsal */}
             {(() => {
-              const selected = form.watch(`products.${index}.midfoot_arch` as const) as string
-              const images = MIDFOOT_ARCH_IMAGE_MAP[selected] || []
-              const alt = selected ? `Imagen ${selected}` : "Imagen Mediopié"
+              const selectedRight = form.watch(`products.${index}.forefoot_metatarsal` as const) as string
+              const selectedLeft = form.watch(`products.${index}.forefoot_metatarsal_left` as const) as string
+              const bothEqual = selectedRight === "Igual a Pie Izquierdo" && selectedLeft === "Igual a Pie Derecho"
+              
+              if (bothEqual) {
+                return (
+                  <Alert variant="warning" className="mt-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      No puede seleccionar "Igual al pie derecho" e "Igual al pie izquierdo" en ambos pies. Debe elegir una opción específica en al menos uno de los pies.
+                    </AlertDescription>
+                  </Alert>
+                )
+              }
+              return null
+            })()}
+            
+            {/* Sliders móviles debajo de los campos */}
+            {(() => {
+              const selectedRight = form.watch(`products.${index}.forefoot_metatarsal` as const) as string
+              const selectedLeft = form.watch(`products.${index}.forefoot_metatarsal_left` as const) as string
+              const imagesRight = FOREFOOT_IMAGE_MAP_RIGHT[selectedRight] || []
+              const imagesLeft = FOREFOOT_IMAGE_MAP_LEFT[selectedLeft] || []
+              const altRight = selectedRight ? `Imagen ${selectedRight} (Derecho)` : "Imagen Antepié Derecho"
+              const altLeft = selectedLeft ? `Imagen ${selectedLeft} (Izquierdo)` : "Imagen Antepié Izquierdo"
+              
               return (
-                <div className="block md:hidden mt-2">
-                  <ProductImageSlider images={images} alt={alt} />
+                <div className="md:hidden mt-2 grid grid-cols-2 gap-2">
+                  <div>
+                    <p className="text-xs text-blue-600 mb-1 font-semibold">Pie Izquierdo</p>
+                    <ProductImageSlider images={imagesLeft} alt={altLeft} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-green-600 mb-1 font-semibold">Pie Derecho</p>
+                    <ProductImageSlider images={imagesRight} alt={altRight} />
+                  </div>
                 </div>
               )
             })()}
           </div>
-        </div>
-        {/* Slider desktop */}
-        {(() => {
-          const selected = form.watch(`products.${index}.midfoot_arch` as const) as string
-          const images = MIDFOOT_ARCH_IMAGE_MAP[selected] || []
-          const alt = selected ? `Imagen ${selected}` : "Imagen Mediopié"
-          return (
-            <div className="hidden md:block">
-              <ProductImageSlider images={images} alt={alt} />
-            </div>
-          )
-        })()}
-      </div>
-
-      {/* Retropié - Zona calcáneo */}
-      {config.productFields.rearfoot_calcaneus !== false && (
-        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-          <FormField
-            control={form.control}
-            name={`products.${index}.rearfoot_calcaneus` as any}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="font-bold text-gray-600">{config.productLabels?.rearfoot_calcaneus || "Retropié - Zona calcáneo"}</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {REARFOOT_OPTIONS.map((value) => (
-                      <SelectItem key={value} value={value}>
-                        {value}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {/* Slider móvil */}
-                {(() => {
-                  const selected = form.watch(`products.${index}.rearfoot_calcaneus` as const) as string
-                  const images = REARFOOT_IMAGE_MAP[selected] || []
-                  const alt = selected ? `Imagen ${selected}` : "Imagen Retropié"
-                  return (
-                    <div className="block md:hidden mt-2">
-                      <ProductImageSlider images={images} alt={alt} />
-                    </div>
-                  )
-                })()}
-                {/* Detalle de milímetros para Realce en talón (debajo del selector) */}
-                {config.productFields.heel_raise_mm !== false && rearfootValue === "Realce en talón" && (
-                  <FormField
-                    control={form.control}
-                    name={`products.${index}.heel_raise_mm` as any}
-                    render={({ field }) => (
-                      <FormItem className="mt-2">
-                        <FormLabel>{config.productLabels?.heel_raise_mm || "Detalle de milímetros para Realce en talón"}</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Seleccione milímetros" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {HEEL_RAISE_MM_OPTIONS.map((value) => (
-                              <SelectItem key={value} value={value}>
-                                {value}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {/* Slider desktop */}
+          
+          {/* Sliders a la derecha en desktop - divididos en dos columnas */}
           {(() => {
-            const selected = form.watch(`products.${index}.rearfoot_calcaneus` as const) as string
-            const images = REARFOOT_IMAGE_MAP[selected] || []
-            const alt = selected ? `Imagen ${selected}` : "Imagen Retropié"
+            const selectedRight = form.watch(`products.${index}.forefoot_metatarsal` as const) as string
+            const selectedLeft = form.watch(`products.${index}.forefoot_metatarsal_left` as const) as string
+            const imagesRight = FOREFOOT_IMAGE_MAP_RIGHT[selectedRight] || []
+            const imagesLeft = FOREFOOT_IMAGE_MAP_LEFT[selectedLeft] || []
+            const altRight = selectedRight ? `Imagen ${selectedRight} (Derecho)` : "Imagen Antepié Derecho"
+            const altLeft = selectedLeft ? `Imagen ${selectedLeft} (Izquierdo)` : "Imagen Antepié Izquierdo"
+            
             return (
-              <div className="hidden md:block">
-                <ProductImageSlider images={images} alt={alt} />
+              <div className="hidden md:grid grid-cols-2 gap-2">
+                <div>
+                  <p className="text-xs text-blue-600 mb-1 font-semibold text-center">Pie Izquierdo</p>
+                  <ProductImageSlider images={imagesLeft} alt={altLeft} />
+                </div>
+                <div>
+                  <p className="text-xs text-green-600 mb-1 font-semibold text-center">Pie Derecho</p>
+                  <ProductImageSlider images={imagesRight} alt={altRight} />
+                </div>
               </div>
             )
           })()}
         </div>
       )}
 
-      
+      {/* Separador antes de Cuña Anterior */}
+      <div className="md:col-span-2 h-px bg-gray-100 dark:bg-gray-700 my-2"></div>
+
+      {/* Cuña Anterior */}
+      {config.productFields.anterior_wedge !== false && (
+        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+          <div className="space-y-2">
+            {/* Título de sección */}
+            <div className="mb-2">
+              <h5 className="text-sm font-bold text-gray-600 dark:text-gray-300">{config.productLabels?.anterior_wedge || "Cuña anterior"}</h5>
+            </div>
+            
+            {/* Dropdown para pie izquierdo */}
+            <FormField
+              control={form.control}
+              name={`products.${index}.anterior_wedge_left` as any}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[0.75rem] text-blue-600 font-semibold">Pie Izquierdo</FormLabel>
+                  <Select
+                    onValueChange={(val) => {
+                      field.onChange(val)
+                      if (val === "Igual a Pie Derecho") {
+                        const rightMm = form.watch(`products.${index}.anterior_wedge_mm` as const)
+                        if (rightMm) {
+                          form.setValue(`products.${index}.anterior_wedge_left_mm` as any, rightMm)
+                        }
+                      } else if (val !== "Cuña Anterior Interna") {
+                        form.setValue(`products.${index}.anterior_wedge_left_mm` as any, "")
+                      }
+                    }}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Igual a Pie Derecho" className="text-green-600 font-semibold">
+                        → Igual a Pie Derecho
+                      </SelectItem>
+                      {ANTERIOR_WEDGE_OPTIONS.map((value) => (
+                        <SelectItem key={value} value={value}>
+                          {value}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {/* Espesor (solo si Interna) - PIE IZQUIERDO */}
+                  {(() => {
+                    const wedgeLeft = form.watch(`products.${index}.anterior_wedge_left` as const) as string
+                    if (wedgeLeft === "Cuña Anterior Interna") {
+                      return (
+                        <FormField
+                          control={form.control}
+                          name={`products.${index}.anterior_wedge_left_mm` as any}
+                          render={({ field: mmField }) => (
+                            <FormItem className="mt-2">
+                              <FormLabel className="text-xs font-semibold text-blue-600">Espesor - Pie Izquierdo</FormLabel>
+                              <Select onValueChange={mmField.onChange} value={mmField.value || ""}>
+                                <FormControl>
+                                  <SelectTrigger className="border-blue-300">
+                                    <SelectValue placeholder="Seleccionar espesor" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {ANTERIOR_WEDGE_MM_OPTIONS.map((value) => (
+                                    <SelectItem key={value} value={value}>
+                                      {value}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )
+                    }
+                    return null
+                  })()}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Dropdown para pie derecho */}
+            <FormField
+              control={form.control}
+              name={`products.${index}.anterior_wedge` as any}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[0.75rem] text-green-600 font-semibold">Pie Derecho</FormLabel>
+                  <Select
+                    onValueChange={(val) => {
+                      field.onChange(val)
+                      if (val === "Igual a Pie Izquierdo") {
+                        const leftMm = form.watch(`products.${index}.anterior_wedge_left_mm` as const)
+                        if (leftMm) {
+                          form.setValue(`products.${index}.anterior_wedge_mm` as any, leftMm)
+                        }
+                      } else if (val !== "Cuña Anterior Interna") {
+                        form.setValue(`products.${index}.anterior_wedge_mm` as any, "")
+                      }
+                    }}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Igual a Pie Izquierdo" className="text-blue-600 font-semibold">
+                        ← Igual a Pie Izquierdo
+                      </SelectItem>
+                      {ANTERIOR_WEDGE_OPTIONS.map((value) => (
+                        <SelectItem key={value} value={value}>
+                          {value}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {/* Espesor (solo si Interna) - PIE DERECHO */}
+                  {(() => {
+                    const wedge = form.watch(`products.${index}.anterior_wedge` as const) as string
+                    if (wedge === "Cuña Anterior Interna") {
+                      return (
+                        <FormField
+                          control={form.control}
+                          name={`products.${index}.anterior_wedge_mm` as any}
+                          render={({ field: mmField }) => (
+                            <FormItem className="mt-2">
+                              <FormLabel className="text-xs font-semibold text-green-600">Espesor - Pie Derecho</FormLabel>
+                              <Select onValueChange={mmField.onChange} value={mmField.value || ""}>
+                                <FormControl>
+                                  <SelectTrigger className="border-green-300">
+                                    <SelectValue placeholder="Seleccionar espesor" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {ANTERIOR_WEDGE_MM_OPTIONS.map((value) => (
+                                    <SelectItem key={value} value={value}>
+                                      {value}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )
+                    }
+                    return null
+                  })()}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Alerta de validación para Cuña Anterior */}
+            {(() => {
+              const selectedRight = form.watch(`products.${index}.anterior_wedge` as const) as string
+              const selectedLeft = form.watch(`products.${index}.anterior_wedge_left` as const) as string
+              const bothEqual = selectedRight === "Igual a Pie Izquierdo" && selectedLeft === "Igual a Pie Derecho"
+              
+              if (bothEqual) {
+                return (
+                  <Alert variant="warning" className="mt-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      No puede seleccionar "Igual al pie derecho" e "Igual al pie izquierdo" en ambos pies. Debe elegir una opción específica en al menos uno de los pies.
+                    </AlertDescription>
+                  </Alert>
+                )
+              }
+              return null
+            })()}
+            
+            {/* Sliders móviles debajo de los campos */}
+            {(() => {
+              const selectedRight = form.watch(`products.${index}.anterior_wedge` as const) as string
+              const selectedLeft = form.watch(`products.${index}.anterior_wedge_left` as const) as string
+              const imagesRight = ANTERIOR_WEDGE_IMAGE_MAP_RIGHT[selectedRight] || []
+              const imagesLeft = ANTERIOR_WEDGE_IMAGE_MAP_LEFT[selectedLeft] || []
+              const altRight = selectedRight ? `Imagen ${selectedRight} (Derecho)` : "Imagen Cuña Anterior Derecho"
+              const altLeft = selectedLeft ? `Imagen ${selectedLeft} (Izquierdo)` : "Imagen Cuña Anterior Izquierdo"
+              
+              return (
+                <div className="md:hidden mt-2 grid grid-cols-2 gap-2">
+                  <div>
+                    <p className="text-xs text-blue-600 mb-1 font-semibold">Pie Izquierdo</p>
+                    <ProductImageSlider images={imagesLeft} alt={altLeft} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-green-600 mb-1 font-semibold">Pie Derecho</p>
+                    <ProductImageSlider images={imagesRight} alt={altRight} />
+                  </div>
+                </div>
+              )
+            })()}
+          </div>
+          
+          {/* Sliders a la derecha en desktop - divididos en dos columnas */}
+          {(() => {
+            const selectedRight = form.watch(`products.${index}.anterior_wedge` as const) as string
+            const selectedLeft = form.watch(`products.${index}.anterior_wedge_left` as const) as string
+            const imagesRight = ANTERIOR_WEDGE_IMAGE_MAP_RIGHT[selectedRight] || []
+            const imagesLeft = ANTERIOR_WEDGE_IMAGE_MAP_LEFT[selectedLeft] || []
+            const altRight = selectedRight ? `Imagen ${selectedRight} (Derecho)` : "Imagen Cuña Anterior Derecho"
+            const altLeft = selectedLeft ? `Imagen ${selectedLeft} (Izquierdo)` : "Imagen Cuña Anterior Izquierdo"
+            
+            return (
+              <div className="hidden md:grid grid-cols-2 gap-2">
+                <div>
+                  <p className="text-xs text-blue-600 mb-1 font-semibold text-center">Pie Izquierdo</p>
+                  <ProductImageSlider images={imagesLeft} alt={altLeft} />
+                </div>
+                <div>
+                  <p className="text-xs text-green-600 mb-1 font-semibold text-center">Pie Derecho</p>
+                  <ProductImageSlider images={imagesRight} alt={altRight} />
+                </div>
+              </div>
+            )
+          })()}
+        </div>
+      )}
+
+      {/* Separador antes de Mediopié - Zona arco */}
+      <div className="md:col-span-2 h-px bg-gray-100 dark:bg-gray-700 my-2"></div>
+
+      {/* Mediopié - Zona arco */}
+      {config.productFields.midfoot_arch !== false && (
+        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+          <div className="space-y-2">
+            {/* Título de sección */}
+            <div className="mb-2">
+              <h5 className="text-sm font-bold text-gray-600 dark:text-gray-300">Mediopié - Zona del arco</h5>
+            </div>
+            
+            {/* Dropdown para pie izquierdo */}
+            <FormField
+              control={form.control}
+              name={`products.${index}.midfoot_arch_left` as any}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[0.75rem] text-blue-600 font-semibold">Pie Izquierdo</FormLabel>
+                  <Select 
+                    onValueChange={(val) => {
+                      field.onChange(val)
+                    }} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Igual a Pie Derecho" className="text-green-600 font-semibold">
+                        → Igual a Pie Derecho
+                      </SelectItem>
+                      {MIDFOOT_ARCH_OPTIONS.map((value) => (
+                        <SelectItem key={value} value={value}>
+                          {value}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Dropdown para pie derecho */}
+            <FormField
+              control={form.control}
+              name={`products.${index}.midfoot_arch` as any}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[0.75rem] text-green-600 font-semibold">Pie Derecho</FormLabel>
+                  <Select 
+                    onValueChange={(val) => {
+                      field.onChange(val)
+                    }} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Igual a Pie Izquierdo" className="text-blue-600 font-semibold">
+                        ← Igual a Pie Izquierdo
+                      </SelectItem>
+                      {MIDFOOT_ARCH_OPTIONS.map((value) => (
+                        <SelectItem key={value} value={value}>
+                          {value}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Alerta de validación para Mediopié - Zona arco */}
+            {(() => {
+              const selectedRight = form.watch(`products.${index}.midfoot_arch` as const) as string
+              const selectedLeft = form.watch(`products.${index}.midfoot_arch_left` as const) as string
+              const bothEqual = selectedRight === "Igual a Pie Izquierdo" && selectedLeft === "Igual a Pie Derecho"
+              
+              if (bothEqual) {
+                return (
+                  <Alert variant="warning" className="mt-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      No puede seleccionar "Igual al pie derecho" e "Igual al pie izquierdo" en ambos pies. Debe elegir una opción específica en al menos uno de los pies.
+                    </AlertDescription>
+                  </Alert>
+                )
+              }
+              return null
+            })()}
+            
+            {/* Sliders móviles debajo de los campos */}
+            {(() => {
+              const selectedRight = form.watch(`products.${index}.midfoot_arch` as const) as string
+              const selectedLeft = form.watch(`products.${index}.midfoot_arch_left` as const) as string
+              const imagesRight = MIDFOOT_ARCH_IMAGE_MAP_RIGHT[selectedRight] || []
+              const imagesLeft = MIDFOOT_ARCH_IMAGE_MAP_LEFT[selectedLeft] || []
+              const altRight = selectedRight ? `Imagen ${selectedRight} (Derecho)` : "Imagen Mediopié Derecho"
+              const altLeft = selectedLeft ? `Imagen ${selectedLeft} (Izquierdo)` : "Imagen Mediopié Izquierdo"
+              
+              return (
+                <div className="md:hidden mt-2 grid grid-cols-2 gap-2">
+                  <div>
+                    <p className="text-xs text-blue-600 mb-1 font-semibold">Pie Izquierdo</p>
+                    <ProductImageSlider images={imagesLeft} alt={altLeft} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-green-600 mb-1 font-semibold">Pie Derecho</p>
+                    <ProductImageSlider images={imagesRight} alt={altRight} />
+                  </div>
+                </div>
+              )
+            })()}
+          </div>
+          
+          {/* Sliders a la derecha en desktop - divididos en dos columnas */}
+          {(() => {
+            const selectedRight = form.watch(`products.${index}.midfoot_arch` as const) as string
+            const selectedLeft = form.watch(`products.${index}.midfoot_arch_left` as const) as string
+            const imagesRight = MIDFOOT_ARCH_IMAGE_MAP_RIGHT[selectedRight] || []
+            const imagesLeft = MIDFOOT_ARCH_IMAGE_MAP_LEFT[selectedLeft] || []
+            const altRight = selectedRight ? `Imagen ${selectedRight} (Derecho)` : "Imagen Mediopié Derecho"
+            const altLeft = selectedLeft ? `Imagen ${selectedLeft} (Izquierdo)` : "Imagen Mediopié Izquierdo"
+            
+            return (
+              <div className="hidden md:grid grid-cols-2 gap-2">
+                <div>
+                  <p className="text-xs text-blue-600 mb-1 font-semibold text-center">Pie Izquierdo</p>
+                  <ProductImageSlider images={imagesLeft} alt={altLeft} />
+                </div>
+                <div>
+                  <p className="text-xs text-green-600 mb-1 font-semibold text-center">Pie Derecho</p>
+                  <ProductImageSlider images={imagesRight} alt={altRight} />
+                </div>
+              </div>
+            )
+          })()}
+        </div>
+      )}
+
+      {/* Separador antes de Retropié - Zona calcáneo */}
+      <div className="md:col-span-2 h-px bg-gray-100 dark:bg-gray-700 my-2"></div>
+
+      {/* Retropié - Zona calcáneo */}
+      {config.productFields.rearfoot_calcaneus !== false && (
+        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+          <div className="space-y-2">
+            {/* Título de sección */}
+            <div className="mb-2">
+              <h5 className="text-sm font-bold text-gray-600 dark:text-gray-300">{config.productLabels?.rearfoot_calcaneus || "Retropié — Zona del calcáneo"}</h5>
+            </div>
+            
+            {/* Dropdown para pie izquierdo */}
+            <FormField
+              control={form.control}
+              name={`products.${index}.rearfoot_calcaneus_left` as any}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[0.75rem] text-blue-600 font-semibold">Pie Izquierdo</FormLabel>
+                  <Select 
+                    onValueChange={(val) => {
+                      field.onChange(val)
+                      if (val === "Igual a Pie Derecho") {
+                        const rightMm = form.watch(`products.${index}.heel_raise_mm` as const)
+                        if (rightMm) {
+                          form.setValue(`products.${index}.heel_raise_left_mm` as any, rightMm)
+                        }
+                      }
+                    }} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Igual a Pie Derecho" className="text-green-600 font-semibold">
+                        → Igual a Pie Derecho
+                      </SelectItem>
+                      {REARFOOT_OPTIONS.map((value) => (
+                        <SelectItem key={value} value={value}>
+                          {value}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {/* Detalle de milímetros para Realce en talón - PIE IZQUIERDO */}
+                  {(() => {
+                    const rearfootLeft = form.watch(`products.${index}.rearfoot_calcaneus_left` as const) as string
+                    if (config.productFields.heel_raise_mm !== false && rearfootLeft === "Realce en talón") {
+                      return (
+                        <FormField
+                          control={form.control}
+                          name={`products.${index}.heel_raise_left_mm` as any}
+                          render={({ field: mmField }) => (
+                            <FormItem className="mt-2">
+                              <FormLabel className="text-xs font-semibold text-blue-600">Realce en talón - Pie Izquierdo (mm)</FormLabel>
+                              <Select onValueChange={mmField.onChange} value={mmField.value || ""}>
+                                <FormControl>
+                                  <SelectTrigger className="border-blue-300">
+                                    <SelectValue placeholder="Seleccione milímetros" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {HEEL_RAISE_MM_OPTIONS.map((value) => (
+                                    <SelectItem key={value} value={value}>
+                                      {value}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )
+                    }
+                    return null
+                  })()}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Dropdown para pie derecho */}
+            <FormField
+              control={form.control}
+              name={`products.${index}.rearfoot_calcaneus` as any}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[0.75rem] text-green-600 font-semibold">Pie Derecho</FormLabel>
+                  <Select 
+                    onValueChange={(val) => {
+                      field.onChange(val)
+                      if (val === "Igual a Pie Izquierdo") {
+                        const leftMm = form.watch(`products.${index}.heel_raise_left_mm` as const)
+                        if (leftMm) {
+                          form.setValue(`products.${index}.heel_raise_mm` as any, leftMm)
+                        }
+                      }
+                    }} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Igual a Pie Izquierdo" className="text-blue-600 font-semibold">
+                        ← Igual a Pie Izquierdo
+                      </SelectItem>
+                      {REARFOOT_OPTIONS.map((value) => (
+                        <SelectItem key={value} value={value}>
+                          {value}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {/* Detalle de milímetros para Realce en talón - PIE DERECHO */}
+                  {(() => {
+                    const rearfootRight = form.watch(`products.${index}.rearfoot_calcaneus` as const) as string
+                    if (config.productFields.heel_raise_mm !== false && rearfootRight === "Realce en talón") {
+                      return (
+                        <FormField
+                          control={form.control}
+                          name={`products.${index}.heel_raise_mm` as any}
+                          render={({ field: mmField }) => (
+                            <FormItem className="mt-2">
+                              <FormLabel className="text-xs font-semibold text-green-600">Realce en talón - Pie Derecho (mm)</FormLabel>
+                              <Select onValueChange={mmField.onChange} value={mmField.value || ""}>
+                                <FormControl>
+                                  <SelectTrigger className="border-green-300">
+                                    <SelectValue placeholder="Seleccione milímetros" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {HEEL_RAISE_MM_OPTIONS.map((value) => (
+                                    <SelectItem key={value} value={value}>
+                                      {value}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )
+                    }
+                    return null
+                  })()}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Alerta de validación para Retropié - Zona calcáneo */}
+            {(() => {
+              const selectedRight = form.watch(`products.${index}.rearfoot_calcaneus` as const) as string
+              const selectedLeft = form.watch(`products.${index}.rearfoot_calcaneus_left` as const) as string
+              const bothEqual = selectedRight === "Igual a Pie Izquierdo" && selectedLeft === "Igual a Pie Derecho"
+              
+              if (bothEqual) {
+                return (
+                  <Alert variant="warning" className="mt-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      No puede seleccionar "Igual al pie derecho" e "Igual al pie izquierdo" en ambos pies. Debe elegir una opción específica en al menos uno de los pies.
+                    </AlertDescription>
+                  </Alert>
+                )
+              }
+              return null
+            })()}
+            
+            {/* Sliders móviles debajo de los campos */}
+            {(() => {
+              const selectedRight = form.watch(`products.${index}.rearfoot_calcaneus` as const) as string
+              const selectedLeft = form.watch(`products.${index}.rearfoot_calcaneus_left` as const) as string
+              const imagesRight = REARFOOT_IMAGE_MAP_RIGHT[selectedRight] || []
+              const imagesLeft = REARFOOT_IMAGE_MAP_LEFT[selectedLeft] || []
+              const altRight = selectedRight ? `Imagen ${selectedRight} (Derecho)` : "Imagen Retropié Derecho"
+              const altLeft = selectedLeft ? `Imagen ${selectedLeft} (Izquierdo)` : "Imagen Retropié Izquierdo"
+              
+              return (
+                <div className="md:hidden mt-2 grid grid-cols-2 gap-2">
+                  <div>
+                    <p className="text-xs text-blue-600 mb-1 font-semibold">Pie Izquierdo</p>
+                    <ProductImageSlider images={imagesLeft} alt={altLeft} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-green-600 mb-1 font-semibold">Pie Derecho</p>
+                    <ProductImageSlider images={imagesRight} alt={altRight} />
+                  </div>
+                </div>
+              )
+            })()}
+          </div>
+          
+          {/* Sliders a la derecha en desktop - divididos en dos columnas */}
+          {(() => {
+            const selectedRight = form.watch(`products.${index}.rearfoot_calcaneus` as const) as string
+            const selectedLeft = form.watch(`products.${index}.rearfoot_calcaneus_left` as const) as string
+            const imagesRight = REARFOOT_IMAGE_MAP_RIGHT[selectedRight] || []
+            const imagesLeft = REARFOOT_IMAGE_MAP_LEFT[selectedLeft] || []
+            const altRight = selectedRight ? `Imagen ${selectedRight} (Derecho)` : "Imagen Retropié Derecho"
+            const altLeft = selectedLeft ? `Imagen ${selectedLeft} (Izquierdo)` : "Imagen Retropié Izquierdo"
+            
+            return (
+              <div className="hidden md:grid grid-cols-2 gap-2">
+                <div>
+                  <p className="text-xs text-blue-600 mb-1 font-semibold text-center">Pie Izquierdo</p>
+                  <ProductImageSlider images={imagesLeft} alt={altLeft} />
+                </div>
+                <div>
+                  <p className="text-xs text-green-600 mb-1 font-semibold text-center">Pie Derecho</p>
+                  <ProductImageSlider images={imagesRight} alt={altRight} />
+                </div>
+              </div>
+            )
+          })()}
+        </div>
+      )}
+
+      {/* Separador antes de Cuña Posterior */}
+      <div className="md:col-span-2 h-px bg-gray-100 dark:bg-gray-700 my-2"></div>
 
       {/* Cuña Posterior */}
       {config.productFields.posterior_wedge !== false && (
         <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-          <FormField
-            control={form.control}
-            name={`products.${index}.posterior_wedge`}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="font-bold text-gray-600">{config.productLabels?.posterior_wedge || "Cuña Posterior"}</FormLabel>
-                <Select
-                  onValueChange={(val) => {
-                    field.onChange(val)
-                    // limpiar espesor al cambiar opción
-                    form.setValue(`products.${index}.posterior_wedge_mm` as any, "")
-                  }}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="Cuña Posterior Externa">Cuña Posterior Externa</SelectItem>
-                    <SelectItem value="Cuña Posterior Interna">Cuña Posterior Interna</SelectItem>
-                    <SelectItem value="Ninguno">Ninguno</SelectItem>
-                  </SelectContent>
-                </Select>
-                {/* Espesor para cuña posterior (ambas opciones) */}
-                {(() => {
-                  const wedge = form.watch(`products.${index}.posterior_wedge` as const) as string
-                  if (wedge === "Cuña Posterior Externa" || wedge === "Cuña Posterior Interna") {
-                    return (
-                      <FormField
-                        control={form.control}
-                        name={`products.${index}.posterior_wedge_mm` as any}
-                        render={({ field: mmField }) => (
-                          <FormItem className="mt-2">
-                            <FormLabel>Espesor (Cuña Posterior)</FormLabel>
-                            <Select onValueChange={mmField.onChange} value={mmField.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Seleccionar espesor" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {["2mm", "3mm", "5mm"].map((value) => (
-                                  <SelectItem key={value} value={value}>
-                                    {value}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )
-                  }
-                  return null
-                })()}
-                {/* Slider móvil */}
-                {(() => {
-                  const selected = form.watch(`products.${index}.posterior_wedge` as const) as string
-                  const images = POSTERIOR_WEDGE_IMAGE_MAP[selected] || []
-                  const alt = selected ? `Imagen ${selected}` : "Imagen Cuña Posterior"
-                  return (
-                    <div className="block md:hidden mt-2">
-                      <ProductImageSlider images={images} alt={alt} />
-                    </div>
-                  )
-                })()}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {/* Slider desktop */}
+          <div className="space-y-2">
+            {/* Título de sección */}
+            <div className="mb-2">
+              <h5 className="text-sm font-bold text-gray-600 dark:text-gray-300">{config.productLabels?.posterior_wedge || "Cuña posterior"}</h5>
+            </div>
+            
+            {/* Dropdown para pie izquierdo */}
+            <FormField
+              control={form.control}
+              name={`products.${index}.posterior_wedge_left` as any}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[0.75rem] text-blue-600 font-semibold">Pie Izquierdo</FormLabel>
+                  <Select
+                    onValueChange={(val) => {
+                      field.onChange(val)
+                      if (val === "Igual a Pie Derecho") {
+                        const rightMm = form.watch(`products.${index}.posterior_wedge_mm` as const)
+                        if (rightMm) {
+                          form.setValue(`products.${index}.posterior_wedge_left_mm` as any, rightMm)
+                        }
+                      } else if (val !== "Cuña Posterior Externa" && val !== "Cuña Posterior Interna") {
+                        // limpiar espesor al cambiar opción
+                        form.setValue(`products.${index}.posterior_wedge_left_mm` as any, "")
+                      }
+                    }}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Igual a Pie Derecho" className="text-green-600 font-semibold">
+                        → Igual a Pie Derecho
+                      </SelectItem>
+                      <SelectItem value="Cuña Posterior Externa">Cuña Posterior Externa</SelectItem>
+                      <SelectItem value="Cuña Posterior Interna">Cuña Posterior Interna</SelectItem>
+                      <SelectItem value="Ninguno">Ninguno</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {/* Espesor para cuña posterior - PIE IZQUIERDO */}
+                  {(() => {
+                    const wedgeLeft = form.watch(`products.${index}.posterior_wedge_left` as const) as string
+                    if (wedgeLeft === "Cuña Posterior Externa" || wedgeLeft === "Cuña Posterior Interna") {
+                      return (
+                        <FormField
+                          control={form.control}
+                          name={`products.${index}.posterior_wedge_left_mm` as any}
+                          render={({ field: mmField }) => (
+                            <FormItem className="mt-2">
+                              <FormLabel className="text-xs font-semibold text-blue-600">Espesor - Pie Izquierdo</FormLabel>
+                              <Select onValueChange={mmField.onChange} value={mmField.value || ""}>
+                                <FormControl>
+                                  <SelectTrigger className="border-blue-300">
+                                    <SelectValue placeholder="Seleccionar espesor" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {["2mm", "3mm", "5mm"].map((value) => (
+                                    <SelectItem key={value} value={value}>
+                                      {value}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )
+                    }
+                    return null
+                  })()}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Dropdown para pie derecho */}
+            <FormField
+              control={form.control}
+              name={`products.${index}.posterior_wedge`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[0.75rem] text-green-600 font-semibold">Pie Derecho</FormLabel>
+                  <Select
+                    onValueChange={(val) => {
+                      field.onChange(val)
+                      if (val === "Igual a Pie Izquierdo") {
+                        const leftMm = form.watch(`products.${index}.posterior_wedge_left_mm` as const)
+                        if (leftMm) {
+                          form.setValue(`products.${index}.posterior_wedge_mm` as any, leftMm)
+                        }
+                      } else if (val !== "Cuña Posterior Externa" && val !== "Cuña Posterior Interna") {
+                        // limpiar espesor al cambiar opción
+                        form.setValue(`products.${index}.posterior_wedge_mm` as any, "")
+                      }
+                    }}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Igual a Pie Izquierdo" className="text-blue-600 font-semibold">
+                        ← Igual a Pie Izquierdo
+                      </SelectItem>
+                      <SelectItem value="Cuña Posterior Externa">Cuña Posterior Externa</SelectItem>
+                      <SelectItem value="Cuña Posterior Interna">Cuña Posterior Interna</SelectItem>
+                      <SelectItem value="Ninguno">Ninguno</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {/* Espesor para cuña posterior - PIE DERECHO */}
+                  {(() => {
+                    const wedge = form.watch(`products.${index}.posterior_wedge` as const) as string
+                    if (wedge === "Cuña Posterior Externa" || wedge === "Cuña Posterior Interna") {
+                      return (
+                        <FormField
+                          control={form.control}
+                          name={`products.${index}.posterior_wedge_mm` as any}
+                          render={({ field: mmField }) => (
+                            <FormItem className="mt-2">
+                              <FormLabel className="text-xs font-semibold text-green-600">Espesor - Pie Derecho</FormLabel>
+                              <Select onValueChange={mmField.onChange} value={mmField.value || ""}>
+                                <FormControl>
+                                  <SelectTrigger className="border-green-300">
+                                    <SelectValue placeholder="Seleccionar espesor" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {["2mm", "3mm", "5mm"].map((value) => (
+                                    <SelectItem key={value} value={value}>
+                                      {value}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )
+                    }
+                    return null
+                  })()}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Alerta de validación para Cuña Posterior */}
+            {(() => {
+              const selectedRight = form.watch(`products.${index}.posterior_wedge` as const) as string
+              const selectedLeft = form.watch(`products.${index}.posterior_wedge_left` as const) as string
+              const bothEqual = selectedRight === "Igual a Pie Izquierdo" && selectedLeft === "Igual a Pie Derecho"
+              
+              if (bothEqual) {
+                return (
+                  <Alert variant="warning" className="mt-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      No puede seleccionar "Igual al pie derecho" e "Igual al pie izquierdo" en ambos pies. Debe elegir una opción específica en al menos uno de los pies.
+                    </AlertDescription>
+                  </Alert>
+                )
+              }
+              return null
+            })()}
+            
+            {/* Sliders móviles debajo de los campos */}
+            {(() => {
+              const selectedRight = form.watch(`products.${index}.posterior_wedge` as const) as string
+              const selectedLeft = form.watch(`products.${index}.posterior_wedge_left` as const) as string
+              const imagesRight = POSTERIOR_WEDGE_IMAGE_MAP_RIGHT[selectedRight] || []
+              const imagesLeft = POSTERIOR_WEDGE_IMAGE_MAP_LEFT[selectedLeft] || []
+              const altRight = selectedRight ? `Imagen ${selectedRight} (Derecho)` : "Imagen Cuña Posterior Derecho"
+              const altLeft = selectedLeft ? `Imagen ${selectedLeft} (Izquierdo)` : "Imagen Cuña Posterior Izquierdo"
+              
+              return (
+                <div className="md:hidden mt-2 grid grid-cols-2 gap-2">
+                  <div>
+                    <p className="text-xs text-blue-600 mb-1 font-semibold">Pie Izquierdo</p>
+                    <ProductImageSlider images={imagesLeft} alt={altLeft} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-green-600 mb-1 font-semibold">Pie Derecho</p>
+                    <ProductImageSlider images={imagesRight} alt={altRight} />
+                  </div>
+                </div>
+              )
+            })()}
+          </div>
+          
+          {/* Sliders a la derecha en desktop - divididos en dos columnas */}
           {(() => {
-            const selected = form.watch(`products.${index}.posterior_wedge` as const) as string
-            const images = POSTERIOR_WEDGE_IMAGE_MAP[selected] || []
-            const alt = selected ? `Imagen ${selected}` : "Imagen Cuña Posterior"
+            const selectedRight = form.watch(`products.${index}.posterior_wedge` as const) as string
+            const selectedLeft = form.watch(`products.${index}.posterior_wedge_left` as const) as string
+            const imagesRight = POSTERIOR_WEDGE_IMAGE_MAP_RIGHT[selectedRight] || []
+            const imagesLeft = POSTERIOR_WEDGE_IMAGE_MAP_LEFT[selectedLeft] || []
+            const altRight = selectedRight ? `Imagen ${selectedRight} (Derecho)` : "Imagen Cuña Posterior Derecho"
+            const altLeft = selectedLeft ? `Imagen ${selectedLeft} (Izquierdo)` : "Imagen Cuña Posterior Izquierdo"
+            
             return (
-              <div className="hidden md:block">
-                <ProductImageSlider images={images} alt={alt} />
+              <div className="hidden md:grid grid-cols-2 gap-2">
+                <div>
+                  <p className="text-xs text-blue-600 mb-1 font-semibold text-center">Pie Izquierdo</p>
+                  <ProductImageSlider images={imagesLeft} alt={altLeft} />
+                </div>
+                <div>
+                  <p className="text-xs text-green-600 mb-1 font-semibold text-center">Pie Derecho</p>
+                  <ProductImageSlider images={imagesRight} alt={altRight} />
+                </div>
               </div>
             )
           })()}

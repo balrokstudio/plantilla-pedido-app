@@ -32,13 +32,18 @@ export interface ProductRequest {
   template_color?: string | null
   // Configuraciones específicas por zona
   forefoot_metatarsal?: string | null
+  forefoot_metatarsal_left?: string | null
   anterior_wedge?: string | null
+  anterior_wedge_left?: string | null
   midfoot_arch?: string | null
+  midfoot_arch_left?: string | null
   midfoot_external_wedge?: string | null
   rearfoot_calcaneus?: string | null
+  rearfoot_calcaneus_left?: string | null
   heel_raise_mm?: string | null
   // Cuña posterior
   posterior_wedge?: string | null
+  posterior_wedge_left?: string | null
   created_at: string
 }
 

@@ -125,13 +125,18 @@ export default function OrderDetail({ id }: OrderDetailProps) {
                       ["Apellido Paciente", p.patient_lastname],
                       ["Color", p.template_color],
                       ["Talle", p.template_size],
-                      ["Antepié - Zona metatarsal", p.forefoot_metatarsal],
-                      ["Cuña Anterior", p.anterior_wedge],
-                      ["Mediopié - Zona arco", p.midfoot_arch],
+                      ["Antepié - Zona metatarsal (Derecho)", p.forefoot_metatarsal],
+                      ["Antepié - Zona metatarsal (Izquierdo)", p.forefoot_metatarsal_left],
+                      ["Cuña Anterior (Derecho)", p.anterior_wedge],
+                      ["Cuña Anterior (Izquierdo)", p.anterior_wedge_left],
+                      ["Mediopié - Zona arco (Derecho)", p.midfoot_arch],
+                      ["Mediopié - Zona arco (Izquierdo)", p.midfoot_arch_left],
                       ["Cuña Mediopié Externa", p.midfoot_external_wedge],
-                      ["Retropié - Zona calcáneo", p.rearfoot_calcaneus],
+                      ["Retropié - Zona calcáneo (Derecho)", p.rearfoot_calcaneus],
+                      ["Retropié - Zona calcáneo (Izquierdo)", p.rearfoot_calcaneus_left],
                       ["Realce en talón (mm)", p.heel_raise_mm],
-                      ["Cuña Posterior", p.posterior_wedge],
+                      ["Cuña Posterior (Derecho)", p.posterior_wedge],
+                      ["Cuña Posterior (Izquierdo)", p.posterior_wedge_left],
                     ].map(([label, value]) => (
                       value ? (
                         <div key={String(label)} className="flex justify-between gap-2">

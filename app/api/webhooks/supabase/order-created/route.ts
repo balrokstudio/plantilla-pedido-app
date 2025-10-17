@@ -53,8 +53,10 @@ export async function POST(request: NextRequest) {
            product_type, patient_name, patient_lastname,
            zone_option_1, zone_option_2, zone_option_3, zone_option_4, zone_option_5,
            heel_height, posterior_wedge,
-           template_color, template_size, forefoot_metatarsal, anterior_wedge,
-           midfoot_arch, midfoot_external_wedge, rearfoot_calcaneus, heel_raise_mm
+           template_color, template_size, forefoot_metatarsal, forefoot_metatarsal_left, 
+           anterior_wedge, anterior_wedge_left, anterior_wedge_left_mm, midfoot_arch, midfoot_arch_left,
+           midfoot_external_wedge, rearfoot_calcaneus, rearfoot_calcaneus_left, heel_raise_mm, heel_raise_left_mm,
+           posterior_wedge_left_mm
          )`
       )
       .eq("id", orderId)
@@ -88,10 +90,18 @@ export async function POST(request: NextRequest) {
         templateColor: p.template_color || "",
         templateSize: p.template_size || "",
         forefootMetatarsal: p.forefoot_metatarsal || "",
+        forefootMetatarsalLeft: p.forefoot_metatarsal_left || "",
         anteriorWedge: p.anterior_wedge || "",
+        anteriorWedgeLeft: p.anterior_wedge_left || "",
+        anteriorWedgeLeftMm: p.anterior_wedge_left_mm || "",
         midfootArch: p.midfoot_arch || "",
+        midfootArchLeft: p.midfoot_arch_left || "",
         rearfootCalcaneus: p.rearfoot_calcaneus || "",
+        rearfootCalcaneusLeft: p.rearfoot_calcaneus_left || "",
         heelRaiseMm: p.heel_raise_mm || "",
+        heelRaiseLeftMm: p.heel_raise_left_mm || "",
+        posteriorWedgeLeft: p.posterior_wedge_left || "",
+        posteriorWedgeLeftMm: p.posterior_wedge_left_mm || "",
       })),
       notes: order.notes || "",
     }

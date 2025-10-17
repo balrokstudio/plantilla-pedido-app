@@ -13,17 +13,25 @@ export const productFormSchema = z.object({
 
   // Configuraciones específicas por zona
   forefoot_metatarsal: z.string().optional().default(""),
+  forefoot_metatarsal_left: z.string().optional().default(""),
   anterior_wedge: z.string().optional().default(""),
+  anterior_wedge_left: z.string().optional().default(""),
   // Espesor solo aplica si anterior_wedge es "Cuña Anterior Interna"
   anterior_wedge_mm: z.string().optional().default(""),
+  anterior_wedge_left_mm: z.string().optional().default(""),
   midfoot_arch: z.string().optional().default(""),
+  midfoot_arch_left: z.string().optional().default(""),
   midfoot_external_wedge: z.string().optional().default(""),
   rearfoot_calcaneus: z.string().optional().default(""),
+  rearfoot_calcaneus_left: z.string().optional().default(""),
   heel_raise_mm: z.string().optional().default(""),
+  heel_raise_left_mm: z.string().optional().default(""),
 
   // Cuña Posterior
   posterior_wedge: z.string().optional().default(""),
+  posterior_wedge_left: z.string().optional().default(""),
   posterior_wedge_mm: z.string().optional().default(""),
+  posterior_wedge_left_mm: z.string().optional().default(""),
 })
 
 export const orderFormSchema = z.object({
