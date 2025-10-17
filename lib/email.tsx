@@ -190,15 +190,17 @@ function generateCustomerEmailTemplate(data: OrderEmailData): string {
             <div class="product-item">
               <h4>Producto ${index + 1}: ${product.productType}</h4>
               <p><strong>Cantidad:</strong> ${product.quantity}</p>
-              <p><strong>Configuración:</strong></p>
-              <ul>
+              <p><strong>Configuración detallada:</strong></p>
+              <div style="margin-left: 0; line-height: 1.8;">
                 ${Object.entries(product.options)
                   .map(
-                    ([key, value]) =>
-                      `<li><strong>${key}:</strong> ${Array.isArray(value) ? value.join(", ") : value}</li>`,
+                    ([key, value]) => {
+                      const displayValue = Array.isArray(value) ? value.join(", ") : (value || "-");
+                      return `<div style="margin: 4px 0;"><strong>${key}:</strong> ${displayValue}</div>`;
+                    }
                   )
                   .join("")}
-              </ul>
+              </div>
             </div>
           `,
             )
@@ -292,14 +294,16 @@ function generateAdminEmailTemplate(data: OrderEmailData): string {
               <h4>Producto ${index + 1}: ${product.productType}</h4>
               <p><strong>Cantidad:</strong> ${product.quantity}</p>
               <p><strong>Configuración detallada:</strong></p>
-              <ul>
+              <div style="margin-left: 0; line-height: 1.8;">
                 ${Object.entries(product.options)
                   .map(
-                    ([key, value]) =>
-                      `<li><strong>${key}:</strong> ${Array.isArray(value) ? value.join(", ") : value}</li>`,
+                    ([key, value]) => {
+                      const displayValue = Array.isArray(value) ? value.join(", ") : (value || "-");
+                      return `<div style="margin: 4px 0;"><strong>${key}:</strong> ${displayValue}</div>`;
+                    }
                   )
                   .join("")}
-              </ul>
+              </div>
             </div>
           `,
             )

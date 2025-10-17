@@ -122,35 +122,31 @@ export async function POST(request: NextRequest) {
       customerEmail: validatedData.email,
       orderNumber: customerRequest.id.toString(),
       products: validatedData.products.map((product) => {
-        const anteriorWedgeValue =
-          product.anterior_wedge === "Cuña Anterior Interna" && product.anterior_wedge_mm
-            ? `${product.anterior_wedge} (${product.anterior_wedge_mm})`
-            : product.anterior_wedge || ""
-        const posteriorWedgeValue =
-          (product.posterior_wedge === "Cuña Posterior Externa" || product.posterior_wedge === "Cuña Posterior Interna") && product.posterior_wedge_mm
-            ? `${product.posterior_wedge} (${product.posterior_wedge_mm})`
-            : product.posterior_wedge || ""
         return ({
         productType: product.product_type,
         quantity: 1, // Each product is quantity 1 in this system
         options: {
           "Tipo Plantilla": product.product_type,
-          Color: product.template_color,
-          Talle: product.template_size,
+          "Talle": product.template_size,
+          "Color": product.template_color,
           "Nombre Paciente": product.patient_name,
           "Apellido Paciente": product.patient_lastname,
-          "Antepié - Zona metatarsal (Derecho)": product.forefoot_metatarsal || "",
-          "Antepié - Zona metatarsal (Izquierdo)": product.forefoot_metatarsal_left || "",
-          "Cuña Anterior (Derecho)": anteriorWedgeValue,
-          "Cuña Anterior (Izquierdo)": product.anterior_wedge_left || "",
-          "Mediopié - Zona arco (Derecho)": product.midfoot_arch || "",
-          "Mediopié - Zona arco (Izquierdo)": product.midfoot_arch_left || "",
-          "Cuña Mediopié Externa": product.midfoot_external_wedge || "",
-          "Retropié - Zona calcáneo (Derecho)": product.rearfoot_calcaneus || "",
-          "Retropié - Zona calcáneo (Izquierdo)": product.rearfoot_calcaneus_left || "",
-          "Detalle de mm (realce en talón)": product.heel_raise_mm || "",
-          "Cuña posterior (Derecho)": posteriorWedgeValue,
-          "Cuña posterior (Izquierdo)": product.posterior_wedge_left || "",
+          "Antepié - Zona metatarsal (Pie Izquierdo)": product.forefoot_metatarsal_left || "",
+          "Antepié - Zona metatarsal (Pie Derecho)": product.forefoot_metatarsal || "",
+          "Cuña Anterior (Pie Izquierdo)": product.anterior_wedge_left || "",
+          "Cuña Anterior Espesor - Pie Izquierdo (mm)": product.anterior_wedge_left_mm || "",
+          "Cuña Anterior (Pie Derecho)": product.anterior_wedge || "",
+          "Cuña Anterior Espesor - Pie Derecho (mm)": product.anterior_wedge_mm || "",
+          "Mediopié - Zona del arco (Pie Izquierdo)": product.midfoot_arch_left || "",
+          "Mediopié - Zona del arco (Pie Derecho)": product.midfoot_arch || "",
+          "Retropié - Zona calcáneo (Pie Izquierdo)": product.rearfoot_calcaneus_left || "",
+          "Realce en talón - Pie Izquierdo (mm)": product.heel_raise_left_mm || "",
+          "Retropié - Zona calcáneo (Pie Derecho)": product.rearfoot_calcaneus || "",
+          "Realce en talón - Pie Derecho (mm)": product.heel_raise_mm || "",
+          "Cuña Posterior (Pie Izquierdo)": product.posterior_wedge_left || "",
+          "Cuña Posterior Espesor - Pie Izquierdo (mm)": product.posterior_wedge_left_mm || "",
+          "Cuña Posterior (Pie Derecho)": product.posterior_wedge || "",
+          "Cuña Posterior Espesor - Pie Derecho (mm)": product.posterior_wedge_mm || "",
         },
       })
       }),
