@@ -24,27 +24,29 @@ interface OrderSheetData {
     zoneOption4?: string
     zoneOption5?: string
     heelHeight?: string
-    posteriorWedge: string
     // Nuevos campos
     templateColor?: string
     templateSize?: string
     forefootMetatarsal?: string
     forefootMetatarsalLeft?: string
     anteriorWedge?: string
+    anteriorWedgeMm?: string
     anteriorWedgeLeft?: string
     anteriorWedgeLeftMm?: string
     midfootArch?: string
     midfootArchLeft?: string
+    midfootExternalWedge?: string
     rearfootCalcaneus?: string
     rearfootCalcaneusLeft?: string
     heelRaiseMm?: string
     heelRaiseLeftMm?: string
+    posteriorWedge?: string
+    posteriorWedgeMm?: string
     posteriorWedgeLeft?: string
     posteriorWedgeLeftMm?: string
   }>
   notes?: string
 }
-
 class GoogleSheetsService {
   private auth: GoogleAuth
   private sheets: sheets_v4.Sheets
@@ -188,15 +190,18 @@ class GoogleSheetsService {
               "Producto 1 - Antepié (Metatarsal) Derecho",
               "Producto 1 - Antepié (Metatarsal) Izquierdo",
               "Producto 1 - Cuña Anterior Derecho",
+              "Producto 1 - Espesor Cuña Anterior Derecho (mm)",
               "Producto 1 - Cuña Anterior Izquierdo",
               "Producto 1 - Espesor Cuña Anterior Izquierdo (mm)",
               "Producto 1 - Mediopié (Arco) Derecho",
               "Producto 1 - Mediopié (Arco) Izquierdo",
+              "Producto 1 - Mediopié (Cuña Externa)",
               "Producto 1 - Retropié (Calcáneo) Derecho",
               "Producto 1 - Retropié (Calcáneo) Izquierdo",
               "Producto 1 - Realce Talón Derecho (mm)",
               "Producto 1 - Realce Talón Izquierdo (mm)",
               "Producto 1 - Cuña Posterior Derecho",
+              "Producto 1 - Espesor Cuña Posterior Derecho (mm)",
               "Producto 1 - Cuña Posterior Izquierdo",
               "Producto 1 - Espesor Cuña Posterior Izquierdo (mm)",
               // Notas al final (solo en la primera fila del pedido)
@@ -219,15 +224,18 @@ class GoogleSheetsService {
               "Producto 1 - Antepié (Metatarsal) Derecho",
               "Producto 1 - Antepié (Metatarsal) Izquierdo",
               "Producto 1 - Cuña Anterior Derecho",
+              "Producto 1 - Espesor Cuña Anterior Derecho (mm)",
               "Producto 1 - Cuña Anterior Izquierdo",
               "Producto 1 - Espesor Cuña Anterior Izquierdo (mm)",
               "Producto 1 - Mediopié (Arco) Derecho",
               "Producto 1 - Mediopié (Arco) Izquierdo",
+              "Producto 1 - Mediopié (Cuña Externa)",
               "Producto 1 - Retropié (Calcáneo) Derecho",
               "Producto 1 - Retropié (Calcáneo) Izquierdo",
               "Producto 1 - Realce Talón Derecho (mm)",
               "Producto 1 - Realce Talón Izquierdo (mm)",
               "Producto 1 - Cuña Posterior Derecho",
+              "Producto 1 - Espesor Cuña Posterior Derecho (mm)",
               "Producto 1 - Cuña Posterior Izquierdo",
               "Producto 1 - Espesor Cuña Posterior Izquierdo (mm)",
               "Observaciones",
@@ -364,15 +372,18 @@ class GoogleSheetsService {
         p.forefootMetatarsal || '',
         p.forefootMetatarsalLeft || '',
         p.anteriorWedge || '',
+        p.anteriorWedgeMm || '',
         p.anteriorWedgeLeft || '',
         p.anteriorWedgeLeftMm || '',
         p.midfootArch || '',
         p.midfootArchLeft || '',
+        p.midfootExternalWedge || '',
         p.rearfootCalcaneus || '',
         p.rearfootCalcaneusLeft || '',
         p.heelRaiseMm || '',
         p.heelRaiseLeftMm || '',
         p.posteriorWedge || '',
+        p.posteriorWedgeMm || '',
         p.posteriorWedgeLeft || '',
         p.posteriorWedgeLeftMm || '',
       ]
